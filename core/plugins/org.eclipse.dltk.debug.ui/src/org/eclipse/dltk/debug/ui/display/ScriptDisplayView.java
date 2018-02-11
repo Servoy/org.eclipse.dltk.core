@@ -64,8 +64,8 @@ import org.eclipse.ui.part.PageBookView;
 import org.eclipse.ui.part.PageSwitcher;
 import org.eclipse.ui.progress.IWorkbenchSiteProgressService;
 
-public class ScriptDisplayView extends PageBookView implements IConsoleView,
-		IPropertyChangeListener, IPartListener2 {
+public class ScriptDisplayView extends PageBookView
+		implements IConsoleView, IPropertyChangeListener, IPartListener2 {
 
 	/**
 	 * Whether this console is pinned.
@@ -160,9 +160,8 @@ public class ScriptDisplayView extends PageBookView implements IConsoleView,
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see
-	 * org.eclipse.ui.part.PageBookView#showPageRec(org.eclipse.ui.part.PageBookView
-	 * .PageRec)
+	 * @see org.eclipse.ui.part.PageBookView#showPageRec(org.eclipse.ui.part.
+	 * PageBookView .PageRec)
 	 */
 	protected void showPageRec(PageRec pageRec) {
 		// don't show the page when pinned, unless this is the first console to
@@ -278,9 +277,8 @@ public class ScriptDisplayView extends PageBookView implements IConsoleView,
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see
-	 * org.eclipse.ui.part.PageBookView#doDestroyPage(org.eclipse.ui.IWorkbenchPart
-	 * , org.eclipse.ui.part.PageBookView.PageRec)
+	 * @see org.eclipse.ui.part.PageBookView#doDestroyPage(org.eclipse.ui.
+	 * IWorkbenchPart , org.eclipse.ui.part.PageBookView.PageRec)
 	 */
 	protected void doDestroyPage(IWorkbenchPart part, PageRec pageRecord) {
 		IConsole console = fPartToConsole.get(part);
@@ -336,9 +334,8 @@ public class ScriptDisplayView extends PageBookView implements IConsoleView,
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see
-	 * org.eclipse.ui.part.PageBookView#doCreatePage(org.eclipse.ui.IWorkbenchPart
-	 * )
+	 * @see org.eclipse.ui.part.PageBookView#doCreatePage(org.eclipse.ui.
+	 * IWorkbenchPart )
 	 */
 	protected PageRec doCreatePage(IWorkbenchPart dummyPart) {
 		ConsoleWorkbenchPart part = (ConsoleWorkbenchPart) dummyPart;
@@ -350,7 +347,8 @@ public class ScriptDisplayView extends PageBookView implements IConsoleView,
 
 		// initialize page participants
 		final ListenerList participants = new ListenerList();
-		IConsolePageParticipant[] consoleParticipants = getPageParticipants(console);
+		IConsolePageParticipant[] consoleParticipants = getPageParticipants(
+				console);
 		for (int i = 0; i < consoleParticipants.length; i++) {
 			participants.add(consoleParticipants[i]);
 		}
@@ -382,9 +380,8 @@ public class ScriptDisplayView extends PageBookView implements IConsoleView,
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see
-	 * org.eclipse.ui.part.PageBookView#isImportant(org.eclipse.ui.IWorkbenchPart
-	 * )
+	 * @see org.eclipse.ui.part.PageBookView#isImportant(org.eclipse.ui.
+	 * IWorkbenchPart )
 	 */
 	protected boolean isImportant(IWorkbenchPart part) {
 		return part instanceof ConsoleWorkbenchPart;
@@ -531,9 +528,8 @@ public class ScriptDisplayView extends PageBookView implements IConsoleView,
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see
-	 * org.eclipse.ui.console.IConsoleView#display(org.eclipse.ui.console.IConsole
-	 * )
+	 * @see org.eclipse.ui.console.IConsoleView#display(org.eclipse.ui.console.
+	 * IConsole )
 	 */
 	public void display(IConsole console) {
 		if (fPinned && fActiveConsole != null) {
@@ -623,7 +619,8 @@ public class ScriptDisplayView extends PageBookView implements IConsoleView,
 
 	private void createDebugConsole() {
 		addConsole(new DebugConsole(Messages.ScriptDisplayView_consoleName,
-				DebugConsole.class.getName(), new DebugScriptInterpreter(this)));
+				DebugConsole.class.getName(),
+				new DebugScriptInterpreter(this)));
 	}
 
 	/**
@@ -662,8 +659,8 @@ public class ScriptDisplayView extends PageBookView implements IConsoleView,
 	}
 
 	public IConsole[] getConsoles() {
-		return fConsoleToPart.keySet().toArray(
-				new IConsole[fConsoleToPart.size()]);
+		return fConsoleToPart.keySet()
+				.toArray(new IConsole[fConsoleToPart.size()]);
 	}
 
 	/**
@@ -916,4 +913,20 @@ public class ScriptDisplayView extends PageBookView implements IConsoleView,
 	public void removeConsoleListener(IEvaluateConsoleListener listener) {
 		consoleListeners.remove(listener);
 	}
+
+	@Override
+	public boolean getAutoScrollLock() {
+		return false;
+	}
+
+	@Override
+	public void setAutoScrollLock(boolean scrollLock) {
+	}
+
+	public void setWordWrap(boolean wordWrap) {
+	};
+
+	public boolean getWordWrap() {
+		return false;
+	};
 }
