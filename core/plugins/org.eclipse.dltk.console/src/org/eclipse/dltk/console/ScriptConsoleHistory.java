@@ -19,8 +19,7 @@ public class ScriptConsoleHistory {
 
 	/**
 	 * History items. Items are added to the end. Always has at least one item,
-	 * since empty line is added to keep the value of the currently selected
-	 * line.
+	 * since empty line is added to keep the value of the currently selected line.
 	 */
 	private final List lines = new ArrayList();
 
@@ -31,8 +30,7 @@ public class ScriptConsoleHistory {
 	/**
 	 * The index of the current item.
 	 * 
-	 * Invariant:
-	 * <code>selection &gt;= 0 &gt;&gt; selection < lines.size()</code>
+	 * Invariant: <code>selection &gt;= 0 &gt;&gt; selection < lines.size()</code>
 	 */
 	private int selection = 0;
 
@@ -74,8 +72,8 @@ public class ScriptConsoleHistory {
 	}
 
 	/**
-	 * Moves the selection to the next item. Returns <code>true</code> on
-	 * success or <code>false</code> otherwise.
+	 * Moves the selection to the next item. Returns <code>true</code> on success or
+	 * <code>false</code> otherwise.
 	 * 
 	 * @return
 	 */
@@ -104,9 +102,8 @@ public class ScriptConsoleHistory {
 	public void updateSelectedLine(String line) {
 		if (selection >= 0 && selection < lines.size()) {
 			/*
-			 * TODO probably it should a temporary change until a command is
-			 * executed, so the history will contain only commands which were
-			 * actually executed.
+			 * TODO probably it should a temporary change until a command is executed, so
+			 * the history will contain only commands which were actually executed.
 			 */
 			lines.set(selection, line);
 		}
@@ -124,7 +121,7 @@ public class ScriptConsoleHistory {
 	public String saveState() {
 		int size = Math.min(lines.size(), 50);
 		StringBuffer sb = new StringBuffer(size * 10);
-		for (int i = 0; i < size; i++) {
+		for (int i = lines.size() - size; i < lines.size(); i++) {
 			sb.append(lines.get(i));
 			sb.append("\n"); //$NON-NLS-1$
 		}
