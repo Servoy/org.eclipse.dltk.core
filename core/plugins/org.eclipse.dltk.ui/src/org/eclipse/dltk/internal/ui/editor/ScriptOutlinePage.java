@@ -434,6 +434,8 @@ public class ScriptOutlinePage extends Page implements IContentOutlinePage,
 			setToolTipText(DLTKEditorMessages.ScriptOutlinePage_Sort_tooltip);
 			setDescription(DLTKEditorMessages.ScriptOutlinePage_Sort_description);
 
+			setId("lexical_sorting");
+
 			boolean checked = fStore
 					.getBoolean(LEXICAL_SORTING_ACTION_IS_CHECKED);
 			valueChanged(checked, false);
