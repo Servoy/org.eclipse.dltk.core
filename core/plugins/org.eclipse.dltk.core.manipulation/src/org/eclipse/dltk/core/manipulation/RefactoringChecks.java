@@ -20,7 +20,7 @@ import org.eclipse.dltk.internal.corext.refactoring.RefactoringCoreMessages;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.participants.CheckConditionsContext;
 import org.eclipse.ltk.core.refactoring.participants.ResourceChangeChecker;
-import org.eclipse.ltk.internal.core.refactoring.Resources;
+import org.eclipse.ltk.core.refactoring.resource.Resources;
 
 @SuppressWarnings("restriction")
 public class RefactoringChecks {
