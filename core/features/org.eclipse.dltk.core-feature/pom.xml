@@ -9,6 +9,6 @@
     <relativePath>../..</relativePath>
   </parent>
   <groupId>org.eclipse.dltk.features</groupId>
-  <artifactId>org.eclipse.dltk.core</artifactId>
+  <artifactId>org.eclipse.dltk.core.servoy</artifactId>
   <packaging>eclipse-feature</packaging>
 </project>
