@@ -581,6 +581,8 @@ public class ScriptConsoleViewer extends TextConsoleViewer implements
 		 */
 		private void paste(String text) {
 			if (text != null && text.length() > 0) {
+				// add escaped double quotes for already quoted strings
+				text = escapeString(text);
 				// ssanders: Process the lines one-by-one in
 				// order to have the proper prompting
 				console.getDocumentListener().handleSynchronously = true;
@@ -605,6 +607,56 @@ public class ScriptConsoleViewer extends TextConsoleViewer implements
 			}
 		}
 
+		private String escapeString(String string) {
+			final boolean isQuoted = isQuoted(string);
+			if (isQuoted && isEscapeNeeded(string, isQuoted)) {
+				final StringBuffer escaped = new StringBuffer(
+						string.length() + 8);
+				// first char is quote
+				escaped.append(string.charAt(0));
+				for (int i = 1; i < string.length() - 1; i++) {
+					char c = string.charAt(i);
+					switch (c) {
+					case '"':
+						escaped.append("\\\""); //$NON-NLS-1$
+						break;
+					default:
+						escaped.append(c);
+						break;
+					}
+				}
+				// last char is quote
+				escaped.append(string.charAt(string.length() - 1));
+				return escaped.toString();
+			}
+			return string;
+		}
+
+		private boolean isQuoted(String string) {
+			if (string.length() >= 2) {
+				final char firstChar = string.charAt(0);
+				final char lastChar = string.charAt(string.length() - 1);
+				if (firstChar == '\'' && lastChar == '\''
+						|| firstChar == '"' && lastChar == '"') {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		private boolean isEscapeNeeded(String string, boolean isQuoted) {
+			int i = 0, len = string.length();
+			if (isQuoted) {
+				++i;
+				--len;
+			}
+			for (; i < len; ++i) {
+				if (string.charAt(i) == '"') {
+					return true;
+				}
+			}
+			return false;
+		}
 	}
 
 	private ScriptConsoleHistory history;
