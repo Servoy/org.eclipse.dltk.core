@@ -60,6 +60,7 @@ import org.eclipse.dltk.internal.ui.text.DLTKWordIterator;
 import org.eclipse.dltk.internal.ui.text.DocumentCharacterIterator;
 import org.eclipse.dltk.internal.ui.text.HTMLTextPresenter;
 import org.eclipse.dltk.internal.ui.text.IScriptReconcilingListener;
+import org.eclipse.dltk.internal.ui.text.ScriptReconciler;
 import org.eclipse.dltk.internal.ui.text.hover.ScriptExpandHover;
 import org.eclipse.dltk.internal.ui.text.hover.SourceViewerInformationControl;
 import org.eclipse.dltk.ui.CodeFormatterConstants;
@@ -77,6 +78,7 @@ import org.eclipse.dltk.ui.actions.IScriptEditorActionDefinitionIds;
 import org.eclipse.dltk.ui.actions.OpenEditorActionGroup;
 import org.eclipse.dltk.ui.actions.OpenViewActionGroup;
 import org.eclipse.dltk.ui.actions.SearchActionGroup;
+import org.eclipse.dltk.ui.editor.IReconcile;
 import org.eclipse.dltk.ui.editor.IScriptAnnotation;
 import org.eclipse.dltk.ui.editor.highlighting.ISemanticHighlightingUpdater;
 import org.eclipse.dltk.ui.formatter.IScriptFormatterFactory;
@@ -194,7 +196,7 @@ import com.ibm.icu.text.BreakIterator;
 
 public abstract class ScriptEditor extends AbstractDecoratedTextEditor
 		implements IScriptReconcilingListener, IScriptLanguageProvider,
-		IScriptEditor {
+		IScriptEditor, IReconcile {
 
 	/** The editor's save policy */
 	protected ISavePolicy fSavePolicy = null;
@@ -3009,6 +3011,17 @@ public abstract class ScriptEditor extends AbstractDecoratedTextEditor
 					}
 				});
 			}
+		}
+	}
+
+	public void reconcile() {
+		ISourceViewer sourceViewer = getSourceViewer();
+		if (sourceViewer instanceof ScriptSourceViewer
+				&& ((ScriptSourceViewer) sourceViewer)
+						.getReconciler() instanceof ScriptReconciler) {
+			ScriptReconciler reconciler = (ScriptReconciler) ((ScriptSourceViewer) sourceViewer)
+					.getReconciler();
+			reconciler.forceReconciling();
 		}
 	}
 

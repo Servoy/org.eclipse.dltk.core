@@ -373,7 +373,7 @@ public class ScriptReconciler extends MonoReconciler {
 	}
 
 	@Override
-	protected void forceReconciling() {
+	public void forceReconciling() {
 		if (!fIninitalProcessDone)
 			return;
 
