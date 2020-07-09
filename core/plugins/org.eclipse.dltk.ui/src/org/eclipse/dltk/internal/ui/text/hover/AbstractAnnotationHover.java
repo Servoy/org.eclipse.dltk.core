@@ -20,7 +20,6 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.dltk.internal.ui.editor.ScriptAnnotationIterator;
 import org.eclipse.dltk.internal.ui.text.HTMLPrinter;
 import org.eclipse.dltk.ui.DLTKUIPlugin;
-import org.eclipse.dltk.utils.TextUtils;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
@@ -59,7 +58,7 @@ public abstract class AbstractAnnotationHover extends
 	protected String formatMessage(String message) {
 		StringBuffer buffer = new StringBuffer();
 		HTMLPrinter.insertPageProlog(buffer, 0, getStyleSheet());
-		buffer.append(postUpdateMessage(TextUtils.escapeHTML(message)));
+		buffer.append(postUpdateMessage(message));
 		HTMLPrinter.addPageEpilog(buffer);
 		return buffer.toString();
 	}
