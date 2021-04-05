@@ -28,7 +28,6 @@ import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -85,8 +84,9 @@ public class ScriptBreakpointPropertyPage extends PropertyPage {
 	}
 
 	protected int getHitValue() {
-		return getEnabledHitChecking() ? Integer.parseInt(hitValueText
-				.getText()) : -1;
+		return getEnabledHitChecking()
+				? Integer.parseInt(hitValueText.getText())
+				: -1;
 	}
 
 	// Expression
@@ -110,12 +110,12 @@ public class ScriptBreakpointPropertyPage extends PropertyPage {
 	protected void createLabels(Composite parent) throws CoreException {
 		IScriptBreakpoint breakpoint = getBreakpoint();
 
-		Composite labelComposite = SWTFactory.createComposite(parent, parent
-				.getFont(), 2, 1, GridData.FILL_HORIZONTAL);
+		Composite labelComposite = SWTFactory.createComposite(parent,
+				parent.getFont(), 2, 1, GridData.FILL_HORIZONTAL);
 
 		// Script language
-		SWTFactory.createLabel(labelComposite,
-				BreakpointMessages.LanguageLabel, 1);
+		SWTFactory.createLabel(labelComposite, BreakpointMessages.LanguageLabel,
+				1);
 		SWTFactory.createLabel(labelComposite, BreakpointUtils
 				.getLanguageToolkit(breakpoint).getLanguageName(), 1);
 
@@ -126,7 +126,8 @@ public class ScriptBreakpointPropertyPage extends PropertyPage {
 				BreakpointMessages.InternalIdLabel, 1);
 
 		String[] engineIds = breakpoint.getIdentifiers();
-		String engineIdText = (engineIds == null || engineIds.length == 0) ? BreakpointMessages.InternalIdNotAvailableMessage
+		String engineIdText = (engineIds == null || engineIds.length == 0)
+				? BreakpointMessages.InternalIdNotAvailableMessage
 				: TextUtils.join(engineIds, ',');
 		SWTFactory.createLabel(labelComposite, engineIdText, 1);
 
@@ -136,7 +137,8 @@ public class ScriptBreakpointPropertyPage extends PropertyPage {
 					BreakpointMessages.HitCountLabel, 1);
 
 			int hitCount = breakpoint.getHitCount();
-			String hitCountText = hitCount == -1 ? BreakpointMessages.HitCountNotAvailableMessage
+			String hitCountText = hitCount == -1
+					? BreakpointMessages.HitCountNotAvailableMessage
 					: Integer.toString(hitCount);
 			SWTFactory.createLabel(labelComposite, hitCountText, 1);
 		}
@@ -181,12 +183,11 @@ public class ScriptBreakpointPropertyPage extends PropertyPage {
 
 	// Breakpoint information
 	protected void createButtons(Composite parent) throws CoreException {
-		Composite buttonsComposite = SWTFactory.createComposite(parent, parent
-				.getFont(), 1, 1, GridData.FILL_HORIZONTAL);
+		Composite buttonsComposite = SWTFactory.createComposite(parent,
+				parent.getFont(), 1, 1, GridData.FILL_HORIZONTAL);
 
-		enabledBreakpointButton = SWTFactory.createCheckButton(
-				buttonsComposite, BreakpointMessages.EnabledLabel, null, false,
-				1);
+		enabledBreakpointButton = SWTFactory.createCheckButton(buttonsComposite,
+				BreakpointMessages.EnabledLabel, null, false, 1);
 
 		createTypeSpecificButtons(buttonsComposite);
 	}
@@ -196,13 +197,12 @@ public class ScriptBreakpointPropertyPage extends PropertyPage {
 	}
 
 	protected void createHitCountEditor(Composite parent) {
-		Composite hitCountComposite = SWTFactory.createComposite(parent, parent
-				.getFont(), 4, 1, GridData.FILL_HORIZONTAL);
+		Composite hitCountComposite = SWTFactory.createComposite(parent,
+				parent.getFont(), 4, 1, GridData.FILL_HORIZONTAL);
 
 		// Hit count checking
-		hitCountCheckingButton = SWTFactory.createCheckButton(
-				hitCountComposite, BreakpointMessages.BreakWhenHitCountLabel,
-				null, false, 1);
+		hitCountCheckingButton = SWTFactory.createCheckButton(hitCountComposite,
+				BreakpointMessages.BreakWhenHitCountLabel, null, false, 1);
 
 		hitCountCheckingButton.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
@@ -235,8 +235,8 @@ public class ScriptBreakpointPropertyPage extends PropertyPage {
 
 		// Hit value
 		hitValueText = new Text(hitCountComposite, SWT.BORDER);
-		hitValueText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,
-				false));
+		hitValueText
+				.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
 		hitValueText.addKeyListener(new KeyAdapter() {
 			public void keyReleased(KeyEvent e) {
@@ -265,8 +265,8 @@ public class ScriptBreakpointPropertyPage extends PropertyPage {
 				.getUILanguageToolkit(getBreakpoint());
 
 		expressionViewer = new ScriptSourceViewer(group, null, null, false,
-				SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL, toolkit
-						.getPreferenceStore());
+				SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL,
+				toolkit.getPreferenceStore());
 
 		IDocument document = new Document();
 
@@ -279,8 +279,8 @@ public class ScriptBreakpointPropertyPage extends PropertyPage {
 		expressionViewer.configure(config);
 		expressionViewer.setDocument(document);
 
-		expressionViewer.getControl().setLayoutData(
-				new GridData(SWT.FILL, SWT.FILL, true, true));
+		expressionViewer.getControl()
+				.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
 	}
 
@@ -290,8 +290,8 @@ public class ScriptBreakpointPropertyPage extends PropertyPage {
 
 	protected Control createContents(Composite parent) {
 		noDefaultAndApplyButton();
-		Composite composite = SWTFactory.createComposite(parent, parent
-				.getFont(), 1, 1, GridData.FILL_BOTH);
+		Composite composite = SWTFactory.createComposite(parent,
+				parent.getFont(), 1, 1, GridData.FILL_BOTH);
 
 		try {
 			createLabels(composite);
@@ -381,15 +381,9 @@ public class ScriptBreakpointPropertyPage extends PropertyPage {
 			boolean expressionEnabled = enableExpressionButton.getSelection();
 			Control control = expressionViewer.getControl();
 			control.setEnabled(expressionEnabled);
-			if (expressionEnabled) {
-				expressionViewer.initializeViewerColors();
-				if (mode == UPDATE_EXPRESSION_ENABLE) {
-					expressionViewer.getTextWidget().setFocus();
-				}
-			} else {
-				Color color = expressionViewer.getControl().getDisplay()
-						.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
-				expressionViewer.getTextWidget().setBackground(color);
+			// let StyleText enablement control the colors
+			if (expressionEnabled && (mode == UPDATE_EXPRESSION_ENABLE)) {
+				expressionViewer.getTextWidget().setFocus();
 			}
 		}
 
