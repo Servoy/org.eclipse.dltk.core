@@ -170,7 +170,7 @@ public abstract class AbstractInformationControl extends PopupDialog implements
 	 */
 	public AbstractInformationControl(Shell parent, int shellStyle,
 			int treeStyle, String invokingCommandId, boolean showStatusField) {
-		super(parent, shellStyle, true, true, true, true, null, null);
+		super(parent, shellStyle, true, true, true, true, true, null, null);
 		if (invokingCommandId != null) {
 			ICommandManager commandManager = PlatformUI.getWorkbench()
 					.getCommandSupport().getCommandManager();
@@ -682,7 +682,7 @@ public abstract class AbstractInformationControl extends PopupDialog implements
 		 * constrainShellSize in PopupDialog.open will still ensure that the
 		 * shell is entirely visible.
 		 */
-		if (!getPersistBounds() || getDialogSettings() == null)
+		if (!getPersistLocation() || getDialogSettings() == null)
 			getShell().setLocation(location);
 	}
 
