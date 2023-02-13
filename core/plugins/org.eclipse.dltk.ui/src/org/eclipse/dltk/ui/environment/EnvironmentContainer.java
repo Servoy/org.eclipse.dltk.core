@@ -24,7 +24,9 @@ import org.eclipse.dltk.core.environment.EnvironmentManager;
 import org.eclipse.dltk.core.environment.IEnvironment;
 import org.eclipse.dltk.core.environment.IEnvironmentChangedListener;
 import org.eclipse.swt.widgets.Display;
-import org.omg.CORBA.Environment;
+
+
+
 
 /**
  * This class collects {@link IEnvironment}s from {@link EnvironmentManager} and
