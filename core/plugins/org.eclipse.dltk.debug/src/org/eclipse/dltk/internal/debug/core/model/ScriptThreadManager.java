@@ -12,7 +12,6 @@ package org.eclipse.dltk.internal.debug.core.model;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -39,8 +38,8 @@ import org.eclipse.dltk.debug.core.model.IScriptStackFrame;
 import org.eclipse.dltk.debug.core.model.IScriptThread;
 import org.eclipse.dltk.internal.debug.core.model.operations.DbgpDebugger;
 
-public class ScriptThreadManager implements IScriptThreadManager,
-		IDbgpStreamListener {
+public class ScriptThreadManager
+		implements IScriptThreadManager, IDbgpStreamListener {
 	private static final boolean DEBUG = DLTKCore.DEBUG;
 
 	private IScriptDebugThreadConfigurator configurator = null;
@@ -51,21 +50,21 @@ public class ScriptThreadManager implements IScriptThreadManager,
 	}
 
 	private boolean getThreadBoolean(IThreadBoolean b) {
-		synchronized (threads) {
-			IThread[] ths = getThreads();
+//		synchronized (threads) {
+		IThread[] ths = getThreads();
 
-			if (ths.length == 0) {
+		if (ths.length == 0) {
+			return false;
+		}
+
+		for (int i = 0; i < ths.length; ++i) {
+			if (!b.get(ths[i])) {
 				return false;
 			}
-
-			for (int i = 0; i < ths.length; ++i) {
-				if (!b.get(ths[i])) {
-					return false;
-				}
-			}
-
-			return true;
 		}
+
+		return true;
+//		}
 	}
 
 	private final ListenerList listeners = new ListenerList(
@@ -184,7 +183,8 @@ public class ScriptThreadManager implements IScriptThreadManager,
 			thread.updateStack();
 			if (thread.hasStackFrames()) {
 				final IStackFrame top = thread.getTopStackFrame();
-				if (top instanceof IScriptStackFrame && top.getLineNumber() > 0) {
+				if (top instanceof IScriptStackFrame
+						&& top.getLineNumber() > 0) {
 					final IScriptStackFrame frame = (IScriptStackFrame) top;
 					if (frame.getSourceURI() != null) {
 						final String location = frame.getSourceURI().getPath();
@@ -194,7 +194,8 @@ public class ScriptThreadManager implements IScriptThreadManager,
 						for (int i = 0; i < breakpoints.length; ++i) {
 							if (breakpoints[i] instanceof IDbgpLineBreakpoint) {
 								final IDbgpLineBreakpoint bp = (IDbgpLineBreakpoint) breakpoints[i];
-								if (frame.getLineNumber() == bp.getLineNumber()) {
+								if (frame.getLineNumber() == bp
+										.getLineNumber()) {
 									try {
 										if (new URI(bp.getFilename()).getPath()
 												.equals(location)) {
@@ -243,7 +244,8 @@ public class ScriptThreadManager implements IScriptThreadManager,
 	}
 
 	// IDbgpThreadAcceptor
-	public void acceptDbgpThread(IDbgpSession session, IProgressMonitor monitor) {
+	public void acceptDbgpThread(IDbgpSession session,
+			IProgressMonitor monitor) {
 		SubMonitor sub = SubMonitor.convert(monitor, 100);
 		try {
 			DbgpException error = session.getInfo().getError();
@@ -265,8 +267,8 @@ public class ScriptThreadManager implements IScriptThreadManager,
 			}
 			if (isFirstThread || !isSupportsThreads(thread)) {
 				SubMonitor child = sub.newChild(25);
-				target.breakpointManager.initializeSession(
-						thread.getDbgpSession(), child);
+				target.breakpointManager
+						.initializeSession(thread.getDbgpSession(), child);
 				child = sub.newChild(25);
 				if (configurator != null) {
 					configurator.initializeBreakpoints(thread, child);
@@ -326,14 +328,15 @@ public class ScriptThreadManager implements IScriptThreadManager,
 	}
 
 	private boolean isAnyThreadInStepInto() {
-		synchronized (threads) {
-			for (Iterator<IScriptThread> i = threads.iterator(); i.hasNext();) {
-				ScriptThread thread = (ScriptThread) i.next();
-				if (thread.isStepInto()) {
-					return true;
-				}
+//		synchronized (threads) {
+		IThread[] threads = getThreads();
+		for (int i = 0; i < threads.length; ++i) {
+			ScriptThread thread = (ScriptThread) threads[i];
+			if (thread.isStepInto()) {
+				return true;
 			}
 		}
+//		}
 		return false;
 	}
 
@@ -358,25 +361,25 @@ public class ScriptThreadManager implements IScriptThreadManager,
 
 	// ITerminate
 	public boolean canTerminate() {
-		synchronized (threads) {
-			IThread[] ths = getThreads();
+//		synchronized (threads) {
+		IThread[] ths = getThreads();
 
-			if (ths.length == 0) {
-				if (waitingForThreads) {
-					return true;
-				} else {
-					return false;
-				}
+		if (ths.length == 0) {
+			if (waitingForThreads) {
+				return true;
+			} else {
+				return false;
 			}
-
-			for (int i = 0; i < ths.length; ++i) {
-				if (!ths[i].canTerminate()) {
-					return false;
-				}
-			}
-
-			return true;
 		}
+
+		for (int i = 0; i < ths.length; ++i) {
+			if (!ths[i].canTerminate()) {
+				return false;
+			}
+		}
+
+		return true;
+//		}
 	}
 
 	public boolean isTerminated() {
@@ -396,13 +399,13 @@ public class ScriptThreadManager implements IScriptThreadManager,
 	}
 
 	public void sendTerminationRequest() throws DebugException {
-		synchronized (threads) {
-			IScriptThread[] threads = getThreads();
-			for (int i = 0; i < threads.length; ++i) {
-				threads[i].sendTerminationRequest();
-			}
-			waitingForThreads = false;
+//		synchronized (threads) {
+		IScriptThread[] threads = getThreads();
+		for (int i = 0; i < threads.length; ++i) {
+			threads[i].sendTerminationRequest();
 		}
+		waitingForThreads = false;
+//		}
 	}
 
 	public boolean canResume() {
@@ -430,30 +433,30 @@ public class ScriptThreadManager implements IScriptThreadManager,
 	}
 
 	public void resume() throws DebugException {
-		synchronized (threads) {
-			IThread[] threads = getThreads();
-			for (int i = 0; i < threads.length; ++i) {
-				threads[i].resume();
-			}
+//		synchronized (threads) {
+		IThread[] threads = getThreads();
+		for (int i = 0; i < threads.length; ++i) {
+			threads[i].resume();
 		}
+//		}
 	}
 
 	public void suspend() throws DebugException {
-		synchronized (threads) {
-			IThread[] threads = getThreads();
-			for (int i = 0; i < threads.length; ++i) {
-				threads[i].suspend();
-			}
+//		synchronized (threads) {
+		IThread[] threads = getThreads();
+		for (int i = 0; i < threads.length; ++i) {
+			threads[i].suspend();
 		}
+//		}
 	}
 
 	public void refreshThreads() {
-		synchronized (threads) {
-			IThread[] threads = getThreads();
-			for (int i = 0; i < threads.length; ++i) {
-				((IScriptThread) threads[i]).updateStackFrames();
-			}
+//		synchronized (threads) {
+		IThread[] threads = getThreads();
+		for (int i = 0; i < threads.length; ++i) {
+			((IScriptThread) threads[i]).updateStackFrames();
 		}
+//		}
 	}
 
 	public void setScriptThreadConfigurator(
@@ -461,7 +464,8 @@ public class ScriptThreadManager implements IScriptThreadManager,
 		this.configurator = configurator;
 	}
 
-	public void configureThread(DbgpDebugger engine, ScriptThread scriptThread) {
+	public void configureThread(DbgpDebugger engine,
+			ScriptThread scriptThread) {
 		if (configurator != null) {
 			configurator.configureThread(engine, scriptThread);
 		}
