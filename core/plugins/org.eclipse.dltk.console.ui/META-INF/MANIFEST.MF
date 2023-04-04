@@ -16,8 +16,10 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.ui.workbench.texteditor,
  org.eclipse.core.expressions,
  org.eclipse.debug.ui,
- org.eclipse.dltk.core;bundle-version="0.0.0"
+ org.eclipse.dltk.core;bundle-version="0.0.0",
+ org.eclipse.e4.ui.css.swt.theme;bundle-version="0.13.200"
 Export-Package: org.eclipse.dltk.console.ui,
  org.eclipse.dltk.console.ui.internal
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
+Import-Package: com.servoy.eclipse.cloud
