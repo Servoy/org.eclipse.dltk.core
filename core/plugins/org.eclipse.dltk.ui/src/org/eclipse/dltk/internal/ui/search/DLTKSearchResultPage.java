@@ -60,7 +60,6 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IMemento;
-import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionContext;
@@ -119,7 +118,7 @@ public class DLTKSearchResultPage extends AbstractTextSearchViewPage implements 
 	private int fCurrentGrouping;
 	
 	private static final String[] SHOW_IN_TARGETS = new String[] {
-			DLTKUIPlugin.ID_SCRIPT_EXPLORER, IPageLayout.ID_RES_NAV };
+			DLTKUIPlugin.ID_SCRIPT_EXPLORER };
 	public static final IShowInTargetList SHOW_IN_TARGET_LIST= new IShowInTargetList() {
 		public String[] getShowInTargetIds() {
 			return SHOW_IN_TARGETS;

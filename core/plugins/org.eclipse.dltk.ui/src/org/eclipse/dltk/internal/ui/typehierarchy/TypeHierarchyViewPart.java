@@ -88,7 +88,6 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IMemento;
-import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchActionConstants;
@@ -641,8 +640,7 @@ public class TypeHierarchyViewPart extends ViewPart implements
 		if (key == IShowInTargetList.class) {
 			return new IShowInTargetList() {
 				public String[] getShowInTargetIds() {
-					return new String[] { DLTKUIPlugin.ID_SCRIPT_EXPLORER,
-							IPageLayout.ID_RES_NAV };
+					return new String[] { DLTKUIPlugin.ID_SCRIPT_EXPLORER };
 				}
 			};
 		}

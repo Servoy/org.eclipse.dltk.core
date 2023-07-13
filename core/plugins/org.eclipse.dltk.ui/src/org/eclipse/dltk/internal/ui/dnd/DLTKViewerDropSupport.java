@@ -14,13 +14,13 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.dltk.internal.ui.scriptview.FileTransferDropAdapter;
 import org.eclipse.dltk.internal.ui.scriptview.SelectionTransferDropAdapter;
 import org.eclipse.jface.util.DelegatingDropAdapter;
+import org.eclipse.jface.util.LocalSelectionTransfer;
 import org.eclipse.jface.util.TransferDropTargetListener;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.ui.part.PluginTransfer;
-import org.eclipse.ui.views.navigator.LocalSelectionTransfer;
 
 public class DLTKViewerDropSupport {
 
@@ -53,7 +53,7 @@ public class DLTKViewerDropSupport {
 		int ops= DND.DROP_COPY | DND.DROP_MOVE | DND.DROP_LINK | DND.DROP_DEFAULT;
 
 		Transfer[] transfers= new Transfer[] {
-			LocalSelectionTransfer.getInstance(),
+				LocalSelectionTransfer.getTransfer(),
 			FileTransfer.getInstance(),
 			PluginTransfer.getInstance()};
 

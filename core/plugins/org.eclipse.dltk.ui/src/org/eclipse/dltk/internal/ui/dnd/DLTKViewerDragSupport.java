@@ -13,12 +13,12 @@ package org.eclipse.dltk.internal.ui.dnd;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.dltk.internal.ui.scriptview.FileTransferDragAdapter;
 import org.eclipse.dltk.internal.ui.scriptview.SelectionTransferDragAdapter;
+import org.eclipse.jface.util.LocalSelectionTransfer;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.ui.part.ResourceTransfer;
-import org.eclipse.ui.views.navigator.LocalSelectionTransfer;
 
 public class DLTKViewerDragSupport {
 
@@ -44,7 +44,7 @@ public class DLTKViewerDragSupport {
 		int ops= DND.DROP_COPY | DND.DROP_MOVE | DND.DROP_LINK;
 
 		Transfer[] transfers= new Transfer[] {
-			LocalSelectionTransfer.getInstance(),
+				LocalSelectionTransfer.getTransfer(),
 			ResourceTransfer.getInstance(),
 			FileTransfer.getInstance()};
 

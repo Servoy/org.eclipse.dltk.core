@@ -47,6 +47,7 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.util.LocalSelectionTransfer;
 import org.eclipse.jface.util.TransferDragSourceListener;
 import org.eclipse.jface.util.TransferDropTargetListener;
 import org.eclipse.jface.viewers.IOpenListener;
@@ -90,7 +91,6 @@ import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.ResourceTransfer;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.texteditor.ITextEditor;
-import org.eclipse.ui.views.navigator.LocalSelectionTransfer;
 
 /**
  * This is the main view for the callers plugin. It builds a tree of
@@ -335,14 +335,14 @@ public class CallHierarchyViewPart extends ViewPart implements
 		DropTarget dropTarget = new DropTarget(fPagebook, DND.DROP_MOVE
 				| DND.DROP_COPY | DND.DROP_LINK | DND.DROP_DEFAULT);
 		dropTarget.setTransfer(new Transfer[] { LocalSelectionTransfer
-				.getInstance() });
+				.getTransfer() });
 		dropTarget.addDropListener(new CallHierarchyTransferDropAdapter(this,
 				fCallHierarchyViewer));
 	}
 
 	private void addDropAdapters(StructuredViewer viewer) {
 		Transfer[] transfers = new Transfer[] { LocalSelectionTransfer
-				.getInstance() };
+				.getTransfer() };
 		int ops = DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK
 				| DND.DROP_DEFAULT;
 
@@ -355,7 +355,7 @@ public class CallHierarchyViewPart extends ViewPart implements
 	private void addDragAdapters(StructuredViewer viewer) {
 		int ops = DND.DROP_COPY | DND.DROP_LINK;
 		Transfer[] transfers = new Transfer[] {
-				LocalSelectionTransfer.getInstance(),
+				LocalSelectionTransfer.getTransfer(),
 				ResourceTransfer.getInstance() };
 
 		TransferDragSourceListener[] dragListeners = new TransferDragSourceListener[] {

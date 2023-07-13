@@ -106,7 +106,6 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IMemento;
-import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IStorageEditorInput;
 import org.eclipse.ui.IViewPart;
@@ -866,12 +865,13 @@ public class ScriptExplorerPart extends ViewPart implements
 			return getShowInSource();
 		}
 		if (key == IShowInTargetList.class) {
-			return new IShowInTargetList() {
-				public String[] getShowInTargetIds() {
-					return new String[] { IPageLayout.ID_RES_NAV };
-				}
-
-			};
+//			return new IShowInTargetList() {
+//				public String[] getShowInTargetIds() {
+//					return new String[] { IPageLayout.ID_RES_NAV };
+//				}
+//
+//			};
+			return null;
 		}
 		// if (key == IContextProvider.class) {
 		// return ScriptUIHelp.getHelpContextProvider(this,
