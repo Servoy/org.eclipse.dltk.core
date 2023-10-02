@@ -14,8 +14,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
-		<eclipse.url>http://download.eclipse.org/eclipse/updates/4.26/</eclipse.url>
-		<emf.url>http://download.eclipse.org/modeling/emf/emf/builds/release/2.21/</emf.url>
+		<eclipse.url>http://download.eclipse.org/eclipse/updates/4.28/</eclipse.url>
 	</properties>
 
 	<repositories>
@@ -24,11 +23,7 @@
 			<url>${eclipse.url}</url>
 			<layout>p2</layout>
 		</repository>
-		<repository>
-			<id>emf</id>
-			<url>${emf.url}</url>
-			<layout>p2</layout>
-		</repository>
+
 	</repositories>
 
 	<build>
