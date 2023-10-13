@@ -24,44 +24,10 @@ import org.eclipse.jface.text.information.IInformationProvider;
 import org.eclipse.jface.text.information.IInformationProviderExtension2;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IPartListener;
-import org.eclipse.ui.IPerspectiveDescriptor;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchPart;
-import org.eclipse.ui.IWorkbenchWindow;
 
 public class ScriptInformationProvider implements IInformationProvider,
 		IInformationProviderExtension2 {
 
-	class EditorWatcher implements IPartListener {
-
-		public void partOpened(IWorkbenchPart part) {
-		}
-
-		public void partDeactivated(IWorkbenchPart part) {
-		}
-
-		public void partClosed(IWorkbenchPart part) {
-			if (part == fEditor) {
-				fEditor.getSite().getWorkbenchWindow().getPartService()
-						.removePartListener(fPartListener);
-				fPartListener = null;
-			}
-		}
-
-		public void partActivated(IWorkbenchPart part) {
-			update();
-		}
-
-		public void partBroughtToTop(IWorkbenchPart part) {
-			update();
-		}
-	}
-
-	protected IEditorPart fEditor;
-	protected IPartListener fPartListener;
-
-	protected String fCurrentPerspective;
 	protected IScriptEditorTextHover fImplementation;
 
 	/**
@@ -71,37 +37,8 @@ public class ScriptInformationProvider implements IInformationProvider,
 
 	public ScriptInformationProvider(IEditorPart editor) {
 
-		fEditor = editor;
-
-		if (fEditor != null) {
-
-			fPartListener = new EditorWatcher();
-			IWorkbenchWindow window = fEditor.getSite().getWorkbenchWindow();
-			window.getPartService().addPartListener(fPartListener);
-
-			update();
-		}
-	}
-
-	protected void update() {
-
-		IWorkbenchWindow window = fEditor.getSite().getWorkbenchWindow();
-		IWorkbenchPage page = window.getActivePage();
-		if (page != null) {
-
-			IPerspectiveDescriptor perspective = page.getPerspective();
-			if (perspective != null) {
-				String perspectiveId = perspective.getId();
-
-				if (fCurrentPerspective == null
-						|| fCurrentPerspective != perspectiveId) {
-					fCurrentPerspective = perspectiveId;
-
-					fImplementation = new ScriptTypeHover();
-					fImplementation.setEditor(fEditor);
-				}
-			}
-		}
+		fImplementation = new ScriptTypeHover();
+		fImplementation.setEditor(editor);
 	}
 
 	public IRegion getSubject(ITextViewer textViewer, int offset) {
