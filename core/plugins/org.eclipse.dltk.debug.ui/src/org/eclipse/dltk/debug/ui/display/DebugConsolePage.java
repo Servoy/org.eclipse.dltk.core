@@ -26,6 +26,7 @@ import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.dltk.console.ScriptConsoleConstants;
 import org.eclipse.dltk.console.ui.ScriptConsole;
 import org.eclipse.dltk.console.ui.internal.ScriptConsolePage;
+import org.eclipse.dltk.console.ui.internal.ScriptConsoleViewer;
 import org.eclipse.dltk.debug.core.model.IScriptStackFrame;
 import org.eclipse.dltk.debug.core.model.IScriptThread;
 import org.eclipse.dltk.debug.ui.DLTKDebugUIPlugin;
@@ -117,8 +118,11 @@ public class DebugConsolePage extends ScriptConsolePage {
 				inputField.setEditable(value);
 			getViewer().setEditable(value);
 			final Control control = getViewer().getControl();
-			control.setBackground(value ? null : control.getDisplay()
-					.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+			if (!ScriptConsoleViewer.isDarkThemeSelected()) {
+				control.setBackground(value ? null
+						: control.getDisplay()
+								.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+			}
 		}
 	}
 
@@ -162,7 +166,8 @@ public class DebugConsolePage extends ScriptConsolePage {
 					public final void collectExpressionInfo(
 							final ExpressionInfo info) {
 						info.addVariableNameAccess(ISources.ACTIVE_EDITOR_NAME);
-						info.addVariableNameAccess(ISources.ACTIVE_CURRENT_SELECTION_NAME);
+						info.addVariableNameAccess(
+								ISources.ACTIVE_CURRENT_SELECTION_NAME);
 					}
 				};
 				pasteHandler = service.activateHandler(
@@ -174,8 +179,9 @@ public class DebugConsolePage extends ScriptConsolePage {
 						new ActionHandler(new CopyAction(inputField)),
 						expression);
 				cutHandler = service.activateHandler(
-						IWorkbenchCommandConstants.EDIT_CUT, new ActionHandler(
-								new CutAction(inputField)), expression);
+						IWorkbenchCommandConstants.EDIT_CUT,
+						new ActionHandler(new CutAction(inputField)),
+						expression);
 				selectAllHandler = service.activateHandler(
 						IWorkbenchCommandConstants.EDIT_SELECT_ALL,
 						new ActionHandler(new SelectAllAction(inputField)),
@@ -254,13 +260,13 @@ public class DebugConsolePage extends ScriptConsolePage {
 	 */
 	public void dispose() {
 		if (debugEventListener != null) {
-			DebugPlugin.getDefault().removeDebugEventListener(
-					debugEventListener);
+			DebugPlugin.getDefault()
+					.removeDebugEventListener(debugEventListener);
 			debugEventListener = null;
 		}
 		if (pasteHandler != null) {
-			IHandlerService service = (IHandlerService) getSite().getService(
-					IHandlerService.class);
+			IHandlerService service = (IHandlerService) getSite()
+					.getService(IHandlerService.class);
 			service.deactivateHandler(pasteHandler);
 			service.deactivateHandler(copyHandler);
 			service.deactivateHandler(cutHandler);
@@ -322,8 +328,8 @@ public class DebugConsolePage extends ScriptConsolePage {
 		public void handleDebugEvents(DebugEvent[] events) {
 			enableUpdateJob.schedule(500);
 			if (resetOnLaunch && isTargetCreate(events)) {
-				DLTKDebugUIPlugin.getStandardDisplay().asyncExec(
-						new Runnable() {
+				DLTKDebugUIPlugin.getStandardDisplay()
+						.asyncExec(new Runnable() {
 							public void run() {
 								((DebugConsole) getConsole()).clearConsole();
 							}

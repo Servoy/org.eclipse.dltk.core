@@ -64,6 +64,31 @@ import org.osgi.framework.ServiceReference;
 
 public class ScriptConsoleViewer extends TextConsoleViewer
 		implements IScriptConsoleViewer {
+
+	public static boolean isDarkThemeSelected() {
+		boolean IS_DARK_THEME = false;
+		BundleContext ctx = ScriptConsolePlugin.getDefault().getBundle()
+				.getBundleContext();
+		ServiceReference<IThemeManager> serviceReference = ctx
+				.getServiceReference(IThemeManager.class);
+		if (serviceReference != null) {
+			IThemeManager manager = ctx.getService(serviceReference);
+			if (manager != null) {
+				Display d = Display.getDefault();
+				IThemeEngine engine = manager.getEngineForDisplay(d);
+				if (engine != null) {
+					ITheme it = engine.getActiveTheme();
+					if (it != null) {
+						if (it.getId().toLowerCase().contains("dark")) {
+							IS_DARK_THEME = true;
+						}
+					}
+				}
+			}
+		}
+		return IS_DARK_THEME;
+	}
+
 	public static class ConsoleDocumentListener implements IDocumentListener {
 
 		private boolean bEnabled = true;
@@ -318,31 +343,6 @@ public class ScriptConsoleViewer extends TextConsoleViewer
 				viewer.getTextWidget().redraw();
 			}
 
-		}
-
-		private static boolean isDarkThemeSelected() {
-			String ECLIPSE_DARK_THEME_ID = "org.eclipse.e4.ui.css.theme.e4_dark";
-			boolean IS_DARK_THEME = false;
-			BundleContext ctx = ScriptConsolePlugin.getDefault().getBundle()
-					.getBundleContext();
-			ServiceReference<IThemeManager> serviceReference = ctx
-					.getServiceReference(IThemeManager.class);
-			if (serviceReference != null) {
-				IThemeManager manager = ctx.getService(serviceReference);
-				if (manager != null) {
-					Display d = Display.getDefault();
-					IThemeEngine engine = manager.getEngineForDisplay(d);
-					if (engine != null) {
-						ITheme it = engine.getActiveTheme();
-						if (it != null) {
-							if (ECLIPSE_DARK_THEME_ID.equals(it.getId())) {
-								IS_DARK_THEME = true;
-							}
-						}
-					}
-				}
-			}
-			return IS_DARK_THEME;
 		}
 
 		protected void processAddition(int offset, String text) {
