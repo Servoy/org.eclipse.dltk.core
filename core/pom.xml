@@ -25,7 +25,7 @@
 			<layout>p2</layout>
 		</repository>
         <repository>
-            <id>eclipse</id>
+            <id>release</id>
             <url>${release.url}</url>
             <layout>p2</layout>
         </repository>

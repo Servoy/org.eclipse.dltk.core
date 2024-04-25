@@ -9,8 +9,8 @@
  *******************************************************************************/
 package org.eclipse.dltk.internal.ui.text;
 
-import java.util.List;
-
+import org.eclipse.core.commands.Command;
+import org.eclipse.core.expressions.Expression;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.dltk.core.IModelElement;
 import org.eclipse.dltk.core.IParent;
@@ -21,6 +21,8 @@ import org.eclipse.dltk.ui.actions.CustomFiltersActionGroup;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.bindings.TriggerSequence;
+import org.eclipse.jface.commands.ActionHandler;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.PopupDialog;
@@ -63,15 +65,13 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IKeyBindingService;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartSite;
+import org.eclipse.ui.LegacyHandlerSubmissionExpression;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.commands.ActionHandler;
-import org.eclipse.ui.commands.HandlerSubmission;
-import org.eclipse.ui.commands.ICommand;
-import org.eclipse.ui.commands.ICommandManager;
-import org.eclipse.ui.commands.IKeySequenceBinding;
-import org.eclipse.ui.commands.Priority;
+import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.contexts.IWorkbenchContextSupport;
-import org.eclipse.ui.keys.KeySequence;
+import org.eclipse.ui.handlers.IHandlerActivation;
+import org.eclipse.ui.handlers.IHandlerService;
+import org.eclipse.ui.keys.IBindingService;
 
 /**
  * Abstract class for Show hierarchy in light-weight controls.
@@ -127,8 +127,8 @@ public abstract class AbstractInformationControl extends PopupDialog implements
 	private TreeViewer fTreeViewer;
 	/** The current string matcher */
 	protected StringMatcher fStringMatcher;
-	private ICommand fInvokingCommand;
-	private KeySequence[] fInvokingCommandKeySequences;
+	private Command fInvokingCommand;
+	private TriggerSequence[] fInvokingCommandKeySequences;
 
 	/**
 	 * Fields that support the dialog menu
@@ -142,7 +142,7 @@ public abstract class AbstractInformationControl extends PopupDialog implements
 	private IKeyBindingService fKeyBindingService;
 	private String[] fKeyBindingScopes;
 	private IAction fShowViewMenuAction;
-	private HandlerSubmission fShowViewMenuHandlerSubmission;
+	private IHandlerActivation fShowViewMenuHandlerActivation;
 
 	/**
 	 * Field for tree style since it must be remembered by the instance.
@@ -172,8 +172,9 @@ public abstract class AbstractInformationControl extends PopupDialog implements
 			int treeStyle, String invokingCommandId, boolean showStatusField) {
 		super(parent, shellStyle, true, true, true, true, true, null, null);
 		if (invokingCommandId != null) {
-			ICommandManager commandManager = PlatformUI.getWorkbench()
-					.getCommandSupport().getCommandManager();
+			ICommandService commandManager = PlatformUI.getWorkbench()
+					.getService(ICommandService.class);
+
 			fInvokingCommand = commandManager.getCommand(invokingCommandId);
 			if (fInvokingCommand != null && !fInvokingCommand.isDefined())
 				fInvokingCommand = null;
@@ -613,13 +614,14 @@ public abstract class AbstractInformationControl extends PopupDialog implements
 		}
 
 		// Register action with command support
-		if (fShowViewMenuHandlerSubmission == null) {
-			fShowViewMenuHandlerSubmission = new HandlerSubmission(null,
-					getShell(), null, fShowViewMenuAction
-							.getActionDefinitionId(), new ActionHandler(
-							fShowViewMenuAction), Priority.MEDIUM);
-			PlatformUI.getWorkbench().getCommandSupport().addHandlerSubmission(
-					fShowViewMenuHandlerSubmission);
+		if (fShowViewMenuHandlerActivation == null) {
+			IHandlerService handlerService = PlatformUI.getWorkbench()
+					.getService(IHandlerService.class);
+			Expression expression = new LegacyHandlerSubmissionExpression(null,
+					getShell(), null);
+			fShowViewMenuHandlerActivation = handlerService.activateHandler(
+					fShowViewMenuAction.getActionDefinitionId(),
+					new ActionHandler(fShowViewMenuAction), expression);
 		}
 	}
 
@@ -630,9 +632,12 @@ public abstract class AbstractInformationControl extends PopupDialog implements
 	 */
 	protected void removeHandlerAndKeyBindingSupport() {
 		// Remove handler submission
-		if (fShowViewMenuHandlerSubmission != null)
-			PlatformUI.getWorkbench().getCommandSupport()
-					.removeHandlerSubmission(fShowViewMenuHandlerSubmission);
+		if (fShowViewMenuHandlerActivation != null) {
+			IHandlerService handlerService = PlatformUI.getWorkbench()
+					.getService(IHandlerService.class);
+			handlerService.deactivateHandler(fShowViewMenuHandlerActivation);
+			fShowViewMenuHandlerActivation = null;
+		}
 
 		// Restore editor's key binding scope
 		if (fKeyBindingService != null && fKeyBindingScopes != null) {
@@ -751,22 +756,18 @@ public abstract class AbstractInformationControl extends PopupDialog implements
 		getShell().removeFocusListener(listener);
 	}
 
-	final protected ICommand getInvokingCommand() {
+	final protected Command getInvokingCommand() {
 		return fInvokingCommand;
 	}
 
-	final protected KeySequence[] getInvokingCommandKeySequences() {
+	final protected TriggerSequence[] getInvokingCommandKeySequences() {
 		if (fInvokingCommandKeySequences == null) {
 			if (getInvokingCommand() != null) {
-				List list = getInvokingCommand().getKeySequenceBindings();
-				if (!list.isEmpty()) {
-					fInvokingCommandKeySequences = new KeySequence[list.size()];
-					for (int i = 0; i < fInvokingCommandKeySequences.length; i++) {
-						fInvokingCommandKeySequences[i] = ((IKeySequenceBinding) list
-								.get(i)).getKeySequence();
-					}
-					return fInvokingCommandKeySequences;
-				}
+				IBindingService bindingService = PlatformUI.getWorkbench()
+						.getAdapter(IBindingService.class);
+				fInvokingCommandKeySequences = bindingService
+						.getActiveBindingsFor(getInvokingCommand().getId());
+				return fInvokingCommandKeySequences;
 			}
 		}
 		return fInvokingCommandKeySequences;

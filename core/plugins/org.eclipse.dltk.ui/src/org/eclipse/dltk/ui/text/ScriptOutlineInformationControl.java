@@ -41,6 +41,9 @@ import org.eclipse.dltk.ui.viewsupport.MemberFilter;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.bindings.TriggerSequence;
+import org.eclipse.jface.bindings.keys.KeySequence;
+import org.eclipse.jface.bindings.keys.SWTKeySupport;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.AbstractTreeViewer;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -60,8 +63,6 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.keys.KeySequence;
-import org.eclipse.ui.keys.SWTKeySupport;
 
 /**
  * Show outline in light-weight control.
@@ -556,7 +557,7 @@ public class ScriptOutlineInformationControl extends AbstractInformationControl 
 	 * {@inheritDoc}
 	 */
 	protected String getStatusFieldText() {
-		KeySequence[] sequences = getInvokingCommandKeySequences();
+		TriggerSequence[] sequences = getInvokingCommandKeySequences();
 		if (sequences == null || sequences.length == 0)
 			return ""; //$NON-NLS-1$
 
@@ -604,10 +605,10 @@ public class ScriptOutlineInformationControl extends AbstractInformationControl 
 				public void keyPressed(KeyEvent e) {
 					int accelerator = SWTKeySupport
 							.convertEventToUnmodifiedAccelerator(e);
-					KeySequence keySequence = KeySequence
-							.getInstance(SWTKeySupport
-									.convertAcceleratorToKeyStroke(accelerator));
-					KeySequence[] sequences = getInvokingCommandKeySequences();
+					KeySequence keySequence = KeySequence.getInstance(
+							SWTKeySupport.convertAcceleratorToKeyStroke(
+									accelerator));
+					TriggerSequence[] sequences = getInvokingCommandKeySequences();
 					if (sequences == null)
 						return;
 					for (int i = 0; i < sequences.length; i++) {
