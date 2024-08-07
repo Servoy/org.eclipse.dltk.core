@@ -11,10 +11,18 @@
  *******************************************************************************/
 package org.eclipse.dltk.ui.text;
 
+import org.eclipse.dltk.ui.DLTKUIPlugin;
+import org.eclipse.e4.ui.css.swt.theme.ITheme;
+import org.eclipse.e4.ui.css.swt.theme.IThemeEngine;
+import org.eclipse.e4.ui.css.swt.theme.IThemeManager;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.PlatformUI;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 
 public class HTMLUtils {
 
@@ -30,10 +38,28 @@ public class HTMLUtils {
 					 * @see java.lang.Runnable#run()
 					 */
 					public void run() {
+						if (isDarkTheme()) {
+							Color darkBGColor = PlatformUI.getWorkbench()
+									.getThemeManager().getCurrentTheme()
+									.getColorRegistry()
+									.get("org.eclipse.ui.workbench.DARK_BACKGROUND");
+							BG_COLOR_RGB = darkBGColor != null
+									? darkBGColor.getRGB()
+									: new RGB(31, 31, 31);
+							Color darkFGColor = PlatformUI.getWorkbench()
+									.getThemeManager().getCurrentTheme()
+									.getColorRegistry()
+									.get("org.eclipse.ui.workbench.DARK_FOREGROUND");
+							FG_COLOR_RGB = darkFGColor != null
+									? darkFGColor.getRGB()
+									: new RGB(204, 204, 204);
+							;
+						} else {
 						BG_COLOR_RGB = display.getSystemColor(
 								SWT.COLOR_INFO_BACKGROUND).getRGB();
 						FG_COLOR_RGB = display.getSystemColor(
 								SWT.COLOR_INFO_FOREGROUND).getRGB();
+						}
 					}
 				});
 			} catch (SWTError err) {
@@ -58,5 +84,29 @@ public class HTMLUtils {
 	 */
 	public static RGB getFgColor() {
 		return FG_COLOR_RGB;
+	}
+
+	public static boolean isDarkTheme() {
+		boolean darkTheme = false;
+		BundleContext ctx = DLTKUIPlugin.getDefault().getBundle()
+				.getBundleContext();
+		ServiceReference<IThemeManager> serviceReference = ctx
+				.getServiceReference(IThemeManager.class);
+		if (serviceReference != null) {
+			IThemeManager manager = ctx.getService(serviceReference);
+			if (manager != null) {
+				IThemeEngine engine = manager
+						.getEngineForDisplay(Display.getDefault());
+				if (engine != null) {
+					ITheme it = engine.getActiveTheme();
+					if (it != null) {
+						if (it.getId().toLowerCase().contains("dark")) {
+							darkTheme = true;
+						}
+					}
+				}
+			}
+		}
+		return darkTheme;
 	}
 }

@@ -28,7 +28,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.dltk.annotations;bundle-version="0.0.0",
  org.eclipse.dltk.core;bundle-version="0.0.0",
  org.eclipse.dltk.core.manipulation;bundle-version="0.0.0",
- com.ibm.icu
+ com.ibm.icu,
+ org.eclipse.e4.ui.css.swt.theme
 Export-Package: org.eclipse.dltk.corext,
  org.eclipse.dltk.corext.documentation,
  org.eclipse.dltk.internal.corext.buildpath;x-internal:=true,

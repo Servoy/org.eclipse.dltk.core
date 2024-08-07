@@ -59,12 +59,15 @@ public class HTMLPrinter {
 			insertPageProlog(buffer, position, styleSheetURL);
 		else {
 			StringBuffer pageProlog = new StringBuffer(300);
-
+			RGB fgRGB = HTMLUtils.getFgColor();
 			pageProlog.append("<html>"); //$NON-NLS-1$
 
 			appendStyleSheetURL(pageProlog, styleSheetURL);
 
-			pageProlog.append("<body text=\"#000000\" bgcolor=\""); //$NON-NLS-1$
+			pageProlog.append("<body text=\""); //$NON-NLS-1$
+			appendColor(pageProlog, fgRGB);
+			pageProlog.append("\" bgcolor=\""); //$NON-NLS-1$
+			
 			appendColor(pageProlog, bgRGB);
 			pageProlog.append("\">"); //$NON-NLS-1$
 
@@ -79,12 +82,15 @@ public class HTMLPrinter {
 			insertPageProlog(buffer, position, styleSheet);
 		else {
 			StringBuffer pageProlog = new StringBuffer(300);
+			RGB fgRGB = HTMLUtils.getFgColor();
 
 			pageProlog.append("<html>"); //$NON-NLS-1$
 
 			appendStyleSheetURL(pageProlog, styleSheet);
 
-			pageProlog.append("<body text=\"#000000\" bgcolor=\""); //$NON-NLS-1$
+			pageProlog.append("<body text=\""); //$NON-NLS-1$
+			appendColor(pageProlog, fgRGB);
+			pageProlog.append("\" bgcolor=\""); //$NON-NLS-1$
 			appendColor(pageProlog, bgRGB);
 			pageProlog.append("\">"); //$NON-NLS-1$
 
@@ -117,7 +123,10 @@ public class HTMLPrinter {
 			insertPageProlog(buffer, position);
 		else {
 			StringBuffer pageProlog = new StringBuffer(60);
-			pageProlog.append("<html><body text=\"#000000\" bgcolor=\""); //$NON-NLS-1$
+			RGB fgRGB = HTMLUtils.getFgColor();
+			pageProlog.append("<body text=\""); //$NON-NLS-1$
+			appendColor(pageProlog, fgRGB);
+			pageProlog.append("\" bgcolor=\""); //$NON-NLS-1$
 			appendColor(pageProlog, bgRGB);
 			pageProlog.append("\">"); //$NON-NLS-1$
 			buffer.insert(position, pageProlog.toString());
