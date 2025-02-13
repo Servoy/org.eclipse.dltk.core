@@ -30,7 +30,7 @@ public class ProblemHover extends AbstractAnnotationHover {
 	@Override
 	protected String postUpdateMessage(String message) {
 		return super.postUpdateMessage(TextUtils.replace(message, '\n',
-				"<br/>\n")); //$NON-NLS-1$
+				"<br/>\n").replace("<", "&lt;")); //$NON-NLS-1$
 	}
 
 	@Override
