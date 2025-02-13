@@ -517,52 +517,63 @@ public class OccurrencesFinder {
 		if (document == null)
 			return;
 
-		boolean hasChanged = false;
-		if (document instanceof IDocumentExtension4) {
-			int offset = selection.getOffset();
-			long currentModificationStamp = ((IDocumentExtension4) document)
-					.getModificationStamp();
-			IRegion markOccurrenceTargetRegion = fMarkOccurrenceTargetRegion;
-			hasChanged = currentModificationStamp != fMarkOccurrenceModificationStamp;
-			if (markOccurrenceTargetRegion != null && !hasChanged) {
-				if (markOccurrenceTargetRegion.getOffset() <= offset
-						&& offset <= markOccurrenceTargetRegion.getOffset()
-								+ markOccurrenceTargetRegion.getLength())
-					return;
-			}
-			fMarkOccurrenceTargetRegion = ScriptWordFinder.findWord(document,
-					offset);
-			fMarkOccurrenceModificationStamp = currentModificationStamp;
-		}
+		new Job("Mark occurrences") {
+			protected IStatus run(IProgressMonitor monitor) {
+				boolean hasChanged = false;
+				if (document instanceof IDocumentExtension4) {
+					int offset = selection.getOffset();
+					long currentModificationStamp = ((IDocumentExtension4) document)
+							.getModificationStamp();
+					IRegion markOccurrenceTargetRegion = fMarkOccurrenceTargetRegion;
+					hasChanged = currentModificationStamp != fMarkOccurrenceModificationStamp;
+					if (markOccurrenceTargetRegion != null && !hasChanged) {
+						if (markOccurrenceTargetRegion.getOffset() <= offset
+								&& offset <= markOccurrenceTargetRegion
+										.getOffset()
+										+ markOccurrenceTargetRegion
+												.getLength())
+							return Status.OK_STATUS;
+						;
+					}
+					fMarkOccurrenceTargetRegion = ScriptWordFinder
+							.findWord(document, offset);
+					fMarkOccurrenceModificationStamp = currentModificationStamp;
+				}
 
-		OccurrenceLocation[] locations = null;
+				OccurrenceLocation[] locations = null;
 
-		if (finders != null) {
-			for (IOccurrencesFinder finder : finders) {
-				if (finder.initialize(module, astRoot, selection.getOffset(),
-						selection.getLength()) == null) {
-					locations = finder.getOccurrences();
-					if (locations != null) {
-						break;
+				if (finders != null) {
+					for (IOccurrencesFinder finder : finders) {
+						if (finder.initialize(module, astRoot,
+								selection.getOffset(),
+								selection.getLength()) == null) {
+							locations = finder.getOccurrences();
+							if (locations != null) {
+								break;
+							}
+						}
 					}
 				}
+
+				if (locations == null) {
+					if (!fStickyOccurrenceAnnotations)
+						removeOccurrenceAnnotations();
+					else if (hasChanged) // check consistency of current
+											// annotations
+						removeOccurrenceAnnotations();
+					return Status.OK_STATUS;
+				}
+
+				fOccurrencesFinderJob = new OccurrencesFinderJob(document,
+						locations, selection);
+				// fOccurrencesFinderJob.setPriority(Job.DECORATE);
+				// fOccurrencesFinderJob.setSystem(true);
+				// fOccurrencesFinderJob.schedule();
+				fOccurrencesFinderJob.run(new NullProgressMonitor());
+				return Status.OK_STATUS;
 			}
-		}
+		}.schedule();
 
-		if (locations == null) {
-			if (!fStickyOccurrenceAnnotations)
-				removeOccurrenceAnnotations();
-			else if (hasChanged) // check consistency of current annotations
-				removeOccurrenceAnnotations();
-			return;
-		}
-
-		fOccurrencesFinderJob = new OccurrencesFinderJob(document, locations,
-				selection);
-		// fOccurrencesFinderJob.setPriority(Job.DECORATE);
-		// fOccurrencesFinderJob.setSystem(true);
-		// fOccurrencesFinderJob.schedule();
-		fOccurrencesFinderJob.run(new NullProgressMonitor());
 	}
 
 	void removeOccurrenceAnnotations() {
