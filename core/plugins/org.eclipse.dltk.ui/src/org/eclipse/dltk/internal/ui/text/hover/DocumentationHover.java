@@ -42,6 +42,7 @@ import org.eclipse.jface.text.IInputChangedListener;
 import org.eclipse.jface.text.ITextHoverExtension;
 import org.eclipse.jface.text.information.IInformationProviderExtension2;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.ISharedImages;
@@ -392,6 +393,14 @@ public class DocumentationHover extends AbstractScriptEditorTextHover implements
 					@Override
 					public IInformationControlCreator getInformationPresenterControlCreator() {
 						return fInformationPresenterControlCreator;
+					}
+
+					@Override
+					public Point computeSizeHint() {
+						Point computeSizeHint = super.computeSizeHint();
+						if (computeSizeHint.x < 400)
+							computeSizeHint.x = 400;
+						return computeSizeHint;
 					}
 				};
 				// TODO (alex) addLinkListener(iControl);
