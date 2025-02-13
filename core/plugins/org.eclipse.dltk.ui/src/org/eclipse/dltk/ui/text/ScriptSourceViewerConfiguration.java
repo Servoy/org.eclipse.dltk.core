@@ -170,7 +170,7 @@ public abstract class ScriptSourceViewerConfiguration extends
 			reconciler.setIsAllowedToModifyDocument(false);
 			reconciler.setIsIncrementalReconciler(false);
 			reconciler.setProgressMonitor(new NullProgressMonitor());
-			reconciler.setDelay(500);
+			reconciler.setDelay(1000);
 
 			return reconciler;
 		}
