@@ -12,6 +12,8 @@ package org.eclipse.dltk.internal.ui.text.hover;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.PlatformObject;
 import org.eclipse.dltk.annotations.Internal;
@@ -472,8 +474,7 @@ public class DocumentationHover extends AbstractScriptEditorTextHover implements
 					.getDocumentation(nature, element, titleAdapter);
 			// Provide hint why there's no doc
 			if (response == null) {
-				response = new TextDocumentationResponse(
-						element,
+				response = new TextDocumentationResponse(element,
 						titleAdapter.getTitle(element),
 						titleAdapter.getImage(element),
 						ScriptHoverMessages.ScriptdocHover_noAttachedInformation);
@@ -483,7 +484,9 @@ public class DocumentationHover extends AbstractScriptEditorTextHover implements
 						buffer,
 						getInfoText(element, response.getTitle(),
 								response.getImage()));
-				HTMLPrinter.addParagraph(buffer, response.getReader());
+				String paragraph = HTMLPrinter.read(response.getReader());
+				HTMLPrinter.addParagraph(buffer,
+						replaceAnchorsWithCode(paragraph));
 				hasContents = true;
 			} catch (IOException e) {
 				return null;
@@ -503,6 +506,20 @@ public class DocumentationHover extends AbstractScriptEditorTextHover implements
 			return buffer.toString();
 		}
 		return null;
+	}
+	
+	private String replaceAnchorsWithCode(String paragraph) {
+	    if (paragraph == null || paragraph.isEmpty()) {
+	        return paragraph;
+	    }
+		// Regex for <a href="...">inner text</a>
+	    Pattern pattern = Pattern.compile("<a\\s+href=[\"'].*?[\"']>(.*?)</a>", Pattern.CASE_INSENSITIVE);
+	    Matcher matcher = pattern.matcher(paragraph);
+	    if (!matcher.find()) {
+	        return paragraph;
+	    }
+	    String result = matcher.replaceAll("<code>$1</code>");
+	    return result;
 	}
 
 	private String getInfoText(Object element, String title,
