@@ -107,5 +107,5 @@ Export-Package: org.eclipse.dltk.corext,
  org.eclipse.dltk.ui.util,
  org.eclipse.dltk.ui.viewsupport,
  org.eclipse.dltk.ui.wizards
-Bundle-RequiredExecutionEnvironment: JavaSE-17
+Bundle-RequiredExecutionEnvironment: JavaSE-21
 Bundle-ActivationPolicy: lazy

@@ -22,5 +22,5 @@ Export-Package: org.eclipse.dltk.core.tests,
  org.eclipse.dltk.core.tests.model,
  org.eclipse.dltk.core.tests.util,
  org.eclipse.dltk.core.tests.xml
-Bundle-RequiredExecutionEnvironment: JavaSE-17
+Bundle-RequiredExecutionEnvironment: JavaSE-21
 Bundle-ActivationPolicy: lazy
