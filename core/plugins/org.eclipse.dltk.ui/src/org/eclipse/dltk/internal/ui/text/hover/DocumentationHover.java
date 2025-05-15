@@ -11,9 +11,8 @@ package org.eclipse.dltk.internal.ui.text.hover;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.net.URI;
 import java.net.URL;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.PlatformObject;
 import org.eclipse.dltk.annotations.Internal;
@@ -44,6 +43,8 @@ import org.eclipse.jface.text.IInputChangedListener;
 import org.eclipse.jface.text.ITextHoverExtension;
 import org.eclipse.jface.text.information.IInformationProviderExtension2;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.browser.LocationAdapter;
+import org.eclipse.swt.browser.LocationEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
@@ -118,11 +119,6 @@ public class DocumentationHover extends AbstractScriptEditorTextHover implements
 			BrowserInformationControlInput current = fInfoControl.getInput();
 
 			if (current != null && current.getPrevious() != null) {
-				// BrowserInput previous = current.getPrevious();
-				// setToolTipText(Messages.format(
-				// JavaHoverMessages.JavadocHover_back_toElement_toolTip,
-				// BasicElementLabels.getJavaElementName(previous
-				// .getInputName())));
 				setEnabled(true);
 			} else {
 				setEnabled(false);
@@ -164,10 +160,6 @@ public class DocumentationHover extends AbstractScriptEditorTextHover implements
 			BrowserInformationControlInput current = fInfoControl.getInput();
 
 			if (current != null && current.getNext() != null) {
-				// setToolTipText(Messages
-				// .format(JavaHoverMessages.JavadocHover_forward_toElement_toolTip,
-				// BasicElementLabels.getJavaElementName(current
-				// .getNext().getInputName())));
 				setEnabled(true);
 			} else {
 				setEnabled(false);
@@ -246,7 +238,7 @@ public class DocumentationHover extends AbstractScriptEditorTextHover implements
 			if (BrowserInformationControl.isAvailable(parent)) {
 				ToolBarManager tbm = new ToolBarManager(SWT.FLAT);
 				String font = PreferenceConstants.APPEARANCE_DOCUMENTATION_FONT;
-				BrowserInformationControl iControl = new BrowserInformationControl(
+				final BrowserInformationControl iControl = new BrowserInformationControl(
 						parent, font, tbm);
 
 				final BackAction backAction = new BackAction(iControl);
@@ -256,48 +248,19 @@ public class DocumentationHover extends AbstractScriptEditorTextHover implements
 				tbm.add(forwardAction);
 				forwardAction.setEnabled(false);
 
-				// final ShowInJavadocViewAction showInJavadocViewAction = new
-				// ShowInJavadocViewAction(
-				// iControl);
-				// tbm.add(showInJavadocViewAction);
 				final OpenDeclarationAction openDeclarationAction = new OpenDeclarationAction(
 						iControl);
 				tbm.add(openDeclarationAction);
 
-				// final SimpleSelectionProvider selectionProvider = new
-				// SimpleSelectionProvider();
-				// if (fSite != null) {
-				// OpenAttachedJavadocAction openAttachedJavadocAction = new
-				// OpenAttachedJavadocAction(
-				// fSite);
-				// openAttachedJavadocAction
-				// .setSpecialSelectionProvider(selectionProvider);
-				// openAttachedJavadocAction
-				// .setImageDescriptor(DLTKPluginImages.DESC_ELCL_OPEN_BROWSER);
-				// openAttachedJavadocAction
-				// .setDisabledImageDescriptor(DLTKPluginImages.DESC_DLCL_OPEN_BROWSER);
-				// selectionProvider
-				// .addSelectionChangedListener(openAttachedJavadocAction);
-				// selectionProvider.setSelection(new StructuredSelection());
-				// tbm.add(openAttachedJavadocAction);
-				// }
-
 				IInputChangedListener inputChangeListener = new IInputChangedListener() {
 					public void inputChanged(Object newInput) {
+						System.out.println(newInput);
 						backAction.update();
 						forwardAction.update();
-						if (newInput == null) {
-							// selectionProvider
-							// .setSelection(new StructuredSelection());
-						} else if (newInput instanceof BrowserInformationControlInput) {
+						if (newInput instanceof BrowserInformationControlInput) {
 							BrowserInformationControlInput input = (BrowserInformationControlInput) newInput;
 							Object inputElement = input.getInputElement();
-							// selectionProvider
-							// .setSelection(new StructuredSelection(
-							// inputElement));
 							boolean isJavaElementInput = inputElement instanceof IModelElement;
-							// showInJavadocViewAction
-							// .setEnabled(isJavaElementInput);
 							openDeclarationAction
 									.setEnabled(isJavaElementInput);
 						}
@@ -307,9 +270,28 @@ public class DocumentationHover extends AbstractScriptEditorTextHover implements
 
 				tbm.update(true);
 
-				// TODO (alex) addLinkListener(iControl);
+				iControl.addLocationListener(new LocationAdapter() {
+					@Override
+					public void changing(LocationEvent event) {
+						String targetUrl = event.location;
+						if (targetUrl != null
+								&& !targetUrl.equals("about:blank")
+								&& (targetUrl.startsWith("http://")
+										|| targetUrl.startsWith("https://"))) {
+							event.doit = false;
+							try {
+								PlatformUI.getWorkbench()
+									.getBrowserSupport()
+									.getExternalBrowser()
+										.openURL(URI.create(targetUrl).toURL());
+							} catch (Exception e) {
+								// ignore failures
+							}
+							iControl.dispose();
+						}
+					}
+				});
 				return iControl;
-
 			} else {
 				return new DefaultInformationControl(parent, true);
 			}
@@ -405,7 +387,6 @@ public class DocumentationHover extends AbstractScriptEditorTextHover implements
 						return computeSizeHint;
 					}
 				};
-				// TODO (alex) addLinkListener(iControl);
 				return iControl;
 			} else {
 				return new DefaultInformationControl(parent,
@@ -484,19 +465,11 @@ public class DocumentationHover extends AbstractScriptEditorTextHover implements
 						buffer,
 						getInfoText(element, response.getTitle(),
 								response.getImage()));
-				String paragraph = HTMLPrinter.read(response.getReader());
-				HTMLPrinter.addParagraph(buffer,
-						replaceAnchorsWithCode(paragraph));
+				HTMLPrinter.addParagraph(buffer, response.getReader());
 				hasContents = true;
 			} catch (IOException e) {
 				return null;
 			}
-			/*
-			 * else if (curr.getElementType() == IModelElement.LOCAL_VARIABLE ||
-			 * curr.getElementType() == IModelElement.TYPE_PARAMETER) {
-			 * HTMLPrinter.addSmallHeader(buffer, getInfoText(curr));
-			 * hasContents= true; }
-			 */
 		}
 		if (!hasContents)
 			return null;
@@ -508,20 +481,6 @@ public class DocumentationHover extends AbstractScriptEditorTextHover implements
 		return null;
 	}
 	
-	private String replaceAnchorsWithCode(String paragraph) {
-	    if (paragraph == null || paragraph.isEmpty()) {
-	        return paragraph;
-	    }
-		// Regex for <a href="...">inner text</a>
-	    Pattern pattern = Pattern.compile("<a\\s+href=[\"'].*?[\"']>(.*?)</a>", Pattern.CASE_INSENSITIVE);
-	    Matcher matcher = pattern.matcher(paragraph);
-	    if (!matcher.find()) {
-	        return paragraph;
-	    }
-	    String result = matcher.replaceAll("<code>$1</code>");
-	    return result;
-	}
-
 	private String getInfoText(Object element, String title,
 			ImageDescriptor image) {
 		String imageName = null;
@@ -551,15 +510,6 @@ public class DocumentationHover extends AbstractScriptEditorTextHover implements
 
 		buf.append("'>"); //$NON-NLS-1$
 		if (imageSrcPath != null) {
-			// if (element != null) {
-			// try {
-			// String uri = JavaElementLinks.createURI(
-			// JavaElementLinks.OPEN_LINK_SCHEME, element);
-			//					buf.append("<a href='").append(uri).append("'>"); //$NON-NLS-1$//$NON-NLS-2$
-			// } catch (URISyntaxException e) {
-			// element = null; // no link
-			// }
-			// }
 			StringBuffer imageStyle = new StringBuffer(
 					"border:none; position: absolute; "); //$NON-NLS-1$
 			imageStyle.append("width: ").append(imageWidth).append("px; "); //$NON-NLS-1$ //$NON-NLS-2$
@@ -580,9 +530,6 @@ public class DocumentationHover extends AbstractScriptEditorTextHover implements
 			buf.append("<!--[if gte IE 7]>\n"); //$NON-NLS-1$
 			buf.append("<img ").append(tooltip).append("style='").append(imageStyle).append("' src='").append(imageSrcPath).append("'/>\n"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 			buf.append("<![endif]-->\n"); //$NON-NLS-1$
-			// if (element != null) {
-			//				buf.append("</a>"); //$NON-NLS-1$
-			// }
 		}
 
 		buf.append(label);
