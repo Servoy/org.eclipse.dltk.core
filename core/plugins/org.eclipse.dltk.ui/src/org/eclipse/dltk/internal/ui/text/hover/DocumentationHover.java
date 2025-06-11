@@ -254,7 +254,6 @@ public class DocumentationHover extends AbstractScriptEditorTextHover implements
 
 				IInputChangedListener inputChangeListener = new IInputChangedListener() {
 					public void inputChanged(Object newInput) {
-						System.out.println(newInput);
 						backAction.update();
 						forwardAction.update();
 						if (newInput instanceof BrowserInformationControlInput) {
