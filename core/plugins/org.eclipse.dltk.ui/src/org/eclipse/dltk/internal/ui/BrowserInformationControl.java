@@ -282,15 +282,17 @@ public class BrowserInformationControl extends AbstractInformationControl
 						&& (targetUrl.startsWith("http://")
 								|| targetUrl.startsWith("https://"))) {
 					event.doit = false;
-					try {
-						PlatformUI.getWorkbench()
-							.getBrowserSupport()
-							.getExternalBrowser()
-								.openURL(URI.create(targetUrl).toURL());
-					} catch (Exception e) {
-						// ignore failures
-					}
+					Display.getDefault().asyncExec(() -> {
+						try {
+							PlatformUI.getWorkbench().getBrowserSupport()
+									.getExternalBrowser()
+									.openURL(URI.create(targetUrl).toURL());
+						} catch (Exception e) {
+							// ignore failures
+						}
+					});
 					setVisible(false);
+					dispose();
 				}
 			}
 		});
