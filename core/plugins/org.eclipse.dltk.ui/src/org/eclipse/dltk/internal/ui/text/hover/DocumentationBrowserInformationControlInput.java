@@ -12,7 +12,7 @@ package org.eclipse.dltk.internal.ui.text.hover;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.dltk.core.IModelElement;
-import org.eclipse.jface.internal.text.html.BrowserInformationControlInput;
+import org.eclipse.dltk.internal.ui.BrowserInformationControlInput;
 
 /**
  * Browser input for Javadoc hover.

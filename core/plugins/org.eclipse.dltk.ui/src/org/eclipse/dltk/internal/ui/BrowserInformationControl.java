@@ -12,6 +12,7 @@ package org.eclipse.dltk.internal.ui;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.URI;
 import java.util.Iterator;
 
 import org.eclipse.core.runtime.Assert;
@@ -30,6 +31,8 @@ import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.browser.LocationAdapter;
+import org.eclipse.swt.browser.LocationEvent;
 import org.eclipse.swt.browser.LocationListener;
 import org.eclipse.swt.browser.OpenWindowListener;
 import org.eclipse.swt.browser.ProgressAdapter;
@@ -48,6 +51,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Slider;
+import org.eclipse.ui.PlatformUI;
 
 /**
  * Displays HTML information in a {@link org.eclipse.swt.browser.Browser}
@@ -266,6 +270,28 @@ public class BrowserInformationControl extends AbstractInformationControl
 		fBrowser.addProgressListener(new ProgressAdapter() {
 			public void completed(ProgressEvent event) {
 				fCompleted = true;
+			}
+		});
+		
+		fBrowser.addLocationListener(new LocationAdapter() {
+			@Override
+			public void changing(LocationEvent event) {
+				String targetUrl = event.location;
+				if (targetUrl != null
+						&& !targetUrl.equals("about:blank")
+						&& (targetUrl.startsWith("http://")
+								|| targetUrl.startsWith("https://"))) {
+					event.doit = false;
+					try {
+						PlatformUI.getWorkbench()
+							.getBrowserSupport()
+							.getExternalBrowser()
+								.openURL(URI.create(targetUrl).toURL());
+					} catch (Exception e) {
+						// ignore failures
+					}
+					setVisible(false);
+				}
 			}
 		});
 
