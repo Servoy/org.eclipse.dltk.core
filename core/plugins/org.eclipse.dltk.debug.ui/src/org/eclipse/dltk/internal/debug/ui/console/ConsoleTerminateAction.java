@@ -45,12 +45,12 @@ public class ConsoleTerminateAction extends Action implements IUpdate {
 		fConsole = console;
 		fWindow = window;
 		setToolTipText(ConsoleMessages.ConsoleTerminateAction_1);
-		setImageDescriptor(DebugPluginImages
-				.getImageDescriptor(IInternalDebugUIConstants.IMG_LCL_TERMINATE));
-		setDisabledImageDescriptor(DebugPluginImages
-				.getImageDescriptor(IInternalDebugUIConstants.IMG_DLCL_TERMINATE));
-		setHoverImageDescriptor(DebugPluginImages
-				.getImageDescriptor(IInternalDebugUIConstants.IMG_LCL_TERMINATE));
+		setImageDescriptor(DebugPluginImages.getImageDescriptor(
+				IInternalDebugUIConstants.IMG_ELCL_TERMINATE));
+		setDisabledImageDescriptor(DebugPluginImages.getImageDescriptor(
+				IInternalDebugUIConstants.IMG_DLCL_TERMINATE));
+		setHoverImageDescriptor(DebugPluginImages.getImageDescriptor(
+				IInternalDebugUIConstants.IMG_ELCL_TERMINATE));
 		// PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
 		// IDebugHelpContextIds.CONSOLE_TERMINATE_ACTION);
 		update();
@@ -80,9 +80,8 @@ public class ConsoleTerminateAction extends Action implements IUpdate {
 			targets.add(processes[k]);
 		}
 		DebugCommandService service = DebugCommandService.getService(fWindow);
-		service
-				.executeCommand(ITerminateHandler.class, targets.toArray(),
-						null);
+		service.executeCommand(ITerminateHandler.class, targets.toArray(),
+				null);
 	}
 
 	public void dispose() {

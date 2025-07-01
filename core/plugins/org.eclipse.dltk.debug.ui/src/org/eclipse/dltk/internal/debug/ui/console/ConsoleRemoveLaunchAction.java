@@ -31,8 +31,8 @@ import org.eclipse.ui.console.IConsoleView;
 /**
  * ConsoleRemoveTerminatedAction
  */
-public class ConsoleRemoveLaunchAction extends Action implements
-		IViewActionDelegate, IConsoleListener, ILaunchesListener2 {
+public class ConsoleRemoveLaunchAction extends Action
+		implements IViewActionDelegate, IConsoleListener, ILaunchesListener2 {
 
 	private ILaunch fLaunch;
 
@@ -48,8 +48,8 @@ public class ConsoleRemoveLaunchAction extends Action implements
 				.getImageDescriptor(IDebugUIConstants.IMG_LCL_REMOVE));
 		setDisabledImageDescriptor(DebugPluginImages
 				.getImageDescriptor(IInternalDebugUIConstants.IMG_DLCL_REMOVE));
-		setHoverImageDescriptor(DebugPluginImages
-				.getImageDescriptor(IInternalDebugUIConstants.IMG_ELCL_REMOVE));
+		setHoverImageDescriptor(DebugPluginImages.getImageDescriptor(
+				IInternalDebugUIConstants.IMG_ELCL_REMOVE_MEMORY));
 		DebugPlugin.getDefault().getLaunchManager().addLaunchListener(this);
 		ConsolePlugin.getDefault().getConsoleManager().addConsoleListener(this);
 	}
@@ -62,8 +62,8 @@ public class ConsoleRemoveLaunchAction extends Action implements
 
 	public void dispose() {
 		DebugPlugin.getDefault().getLaunchManager().removeLaunchListener(this);
-		ConsolePlugin.getDefault().getConsoleManager().removeConsoleListener(
-				this);
+		ConsolePlugin.getDefault().getConsoleManager()
+				.removeConsoleListener(this);
 	}
 
 	public synchronized void update() {
