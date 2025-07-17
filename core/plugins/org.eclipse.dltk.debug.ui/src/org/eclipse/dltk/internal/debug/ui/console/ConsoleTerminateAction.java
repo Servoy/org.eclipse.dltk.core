@@ -13,6 +13,7 @@ package org.eclipse.dltk.internal.debug.ui.console;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.commands.ITerminateHandler;
 import org.eclipse.debug.core.model.IDebugTarget;
@@ -82,6 +83,12 @@ public class ConsoleTerminateAction extends Action implements IUpdate {
 		DebugCommandService service = DebugCommandService.getService(fWindow);
 		service.executeCommand(ITerminateHandler.class, targets.toArray(),
 				null);
+		Job job = Job.create("terminate button updater", (mon) -> {
+			update();
+		});
+		job.setSystem(true);
+		job.setUser(false);
+		job.schedule(500);
 	}
 
 	public void dispose() {
