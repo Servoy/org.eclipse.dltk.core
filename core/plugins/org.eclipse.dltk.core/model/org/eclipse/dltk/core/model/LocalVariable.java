@@ -35,6 +35,7 @@ public class LocalVariable extends SourceRefElement implements ILocalVariable {
 	private int declarationSourceStart, declarationSourceEnd;
 	private int nameStart, nameEnd;
 	private String type;
+	private String description;
 
 	/**
 	 * @param parent
@@ -52,10 +53,11 @@ public class LocalVariable extends SourceRefElement implements ILocalVariable {
 	 *            the position of the variable name end (including - the
 	 *            position of the last character)
 	 * @param type
+	 * @param description
 	 */
 	public LocalVariable(IModelElement parent, String name,
 			int declarationSourceStart, int declarationSourceEnd,
-			int nameStart, int nameEnd, String type) {
+			int nameStart, int nameEnd, String type, String description) {
 		super((ModelElement) parent);
 		this.name = name;
 		this.declarationSourceStart = declarationSourceStart;
@@ -63,6 +65,7 @@ public class LocalVariable extends SourceRefElement implements ILocalVariable {
 		this.nameStart = nameStart;
 		this.nameEnd = nameEnd;
 		this.type = type;
+		this.description = description;
 	}
 
 	@Override
@@ -185,6 +188,10 @@ public class LocalVariable extends SourceRefElement implements ILocalVariable {
 	public ISourceRange getSourceRange() {
 		return new SourceRange(this.declarationSourceStart,
 				this.declarationSourceEnd - this.declarationSourceStart + 1);
+	}
+
+	public String getDescription() {
+		return description;
 	}
 
 	public String getType() {

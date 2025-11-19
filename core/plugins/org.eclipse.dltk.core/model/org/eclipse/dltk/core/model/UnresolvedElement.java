@@ -117,6 +117,11 @@ public class UnresolvedElement extends SourceRefElement implements
 	}
 
 	@Override
+	public String getDescription() {
+		return null;
+	}
+
+	@Override
 	public IResource getCorrespondingResource() {
 		return null;
 	}

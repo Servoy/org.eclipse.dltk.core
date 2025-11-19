@@ -10,6 +10,8 @@
  *******************************************************************************/
 package org.eclipse.dltk.core;
 
+import java.security.Signature;
+
 /**
  * Represents a local variable declared in a method or an initializer.
  * <code>ILocalVariable</code> are pseudo-elements created as the result of a
@@ -41,6 +43,8 @@ public interface ILocalVariable extends IModelElement, ISourceReference {
 	 * @return the source range of this local variable's name
 	 */
 	ISourceRange getNameRange();
+
+	String getDescription();
 
 	/**
 	 * Returns the type signature of this local variable.
