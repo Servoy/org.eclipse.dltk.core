@@ -14,6 +14,7 @@ import org.eclipse.dltk.core.IScriptProject;
 import org.eclipse.dltk.ui.DLTKUIPlugin;
 import org.eclipse.dltk.ui.PreferenceConstants;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 
@@ -240,4 +241,39 @@ public class ScriptMethodCompletionProposal extends
 		return isPrefix(prefix, word);
 	}
 
+	@Override
+	protected void postReplace(IDocument document) throws BadLocationException {
+		adjustIndentation(document);
+	}
+
+	private String extractWhitespacePrefix(String s) {
+		int i = 0;
+		while (i < s.length() && (s.charAt(i) == ' ' || s.charAt(i) == '\t'))
+			i++;
+		return s.substring(0, i);
+	}
+
+	public void adjustIndentation(IDocument document)
+			throws BadLocationException {
+		int offset = getReplacementOffset();
+		int lineNum = document.getLineOfOffset(offset);
+		int lineStart = document.getLineOffset(lineNum);
+
+		String linePrefix = document.get(lineStart, offset - lineStart);
+		String baseIndent = extractWhitespacePrefix(linePrefix);
+
+		int replacementLength = getReplacementString().length();
+		int endOffset = offset + replacementLength;
+		int lineCount = document.getNumberOfLines();
+
+		for (int i = lineNum + 1; i < lineCount; i++) {
+			int start = document.getLineOffset(i);
+
+			if (start >= endOffset)
+				break;
+
+			document.replace(start, 0, baseIndent);
+			endOffset += baseIndent.length();
+		}
+	}
 }
