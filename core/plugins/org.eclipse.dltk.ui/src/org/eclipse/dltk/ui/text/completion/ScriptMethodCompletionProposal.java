@@ -276,4 +276,8 @@ public class ScriptMethodCompletionProposal extends
 			endOffset += baseIndent.length();
 		}
 	}
+
+	public Object getExtraInfo() {
+		return fProposal.getExtraInfo();
+	}
 }
