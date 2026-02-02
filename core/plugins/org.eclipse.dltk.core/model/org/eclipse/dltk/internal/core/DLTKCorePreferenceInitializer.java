@@ -48,6 +48,10 @@ public class DLTKCorePreferenceInitializer extends
 		defaultOptionsMap.put(DLTKCore.BUILDER_ENABLED, DLTKCore.ENABLED);
 		defaultOptionsMap.put(DLTKCore.CODEASSIST_CAMEL_CASE_MATCH,
 				DLTKCore.ENABLED);
+		defaultOptionsMap.put(DLTKCore.CODEASSIST_SUBSTRING_MATCH,
+				DLTKCore.ENABLED);
+		defaultOptionsMap.put(DLTKCore.CODEASSIST_SUBWORD_MATCH,
+				DLTKCore.ENABLED);
 
 		// encoding setting comes from resource plug-in
 		optionNames.add(DLTKCore.CORE_ENCODING);

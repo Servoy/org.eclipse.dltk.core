@@ -660,6 +660,9 @@ public abstract class ScriptCompletionEngine extends Engine implements
 		} else if (CharOperation.equals(token, proposalName, false)) {
 			return RelevanceConstants.R_EXACT_NAME;
 		}
+		else if (CharOperation.substringMatch(token, proposalName)) {
+			return RelevanceConstants.R_SUBSTRING;
+		}
 		return 0;
 	}
 

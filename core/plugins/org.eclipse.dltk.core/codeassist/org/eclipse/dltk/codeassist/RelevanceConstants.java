@@ -38,4 +38,5 @@ public final class RelevanceConstants {
 	public static final int R_INLINE_TAG = 31;
 	public static final int R_VALUE_TAG = 31;
 	public static final int R_NON_INHERITED = 2;
+	public static final int R_SUBSTRING = -21;
 }

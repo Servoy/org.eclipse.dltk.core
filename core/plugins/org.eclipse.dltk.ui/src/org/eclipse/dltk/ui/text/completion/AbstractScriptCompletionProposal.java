@@ -17,12 +17,15 @@ import java.net.URL;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.dltk.compiler.CharOperation;
 import org.eclipse.dltk.core.DLTKCore;
 import org.eclipse.dltk.core.IModelElement;
 import org.eclipse.dltk.core.ModelException;
+import org.eclipse.dltk.core.search.SearchPattern;
 import org.eclipse.dltk.internal.ui.text.hover.DocumentationHover;
 import org.eclipse.dltk.ui.DLTKUIPlugin;
 import org.eclipse.dltk.ui.PreferenceConstants;
@@ -56,6 +59,7 @@ import org.eclipse.jface.text.link.LinkedModeUI.ExitFlags;
 import org.eclipse.jface.text.link.LinkedModeUI.IExitPolicy;
 import org.eclipse.jface.text.link.LinkedPosition;
 import org.eclipse.jface.text.link.LinkedPositionGroup;
+import org.eclipse.osgi.util.TextProcessor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
@@ -199,6 +203,8 @@ public abstract class AbstractScriptCompletionProposal implements
 	 * The control creator.
 	 */
 	private IInformationControlCreator fCreator;
+	
+	private int fPatternMatchRule;
 
 	/**
 	 * The style sheet (css).
@@ -648,25 +654,60 @@ public abstract class AbstractScriptCompletionProposal implements
 	 * {@link #isPrefix(String, String) } method.
 	 * </p>
 	 * 
-	 * @param prefix
+	 * @param pattern
 	 *            the current prefix in the document
 	 * @return <code>true</code> if <code>prefix</code> is a valid prefix of
 	 *         this proposal
 	 */
-	protected boolean isValidPrefix(String prefix) {
+	protected boolean isValidPrefix(String pattern) {
 		/*
-		 * See http://dev.eclipse.org/bugs/show_bug.cgi?id=17667 why we do not
-		 * use the replacement string. String word= fReplacementString;
+		 * See http://dev.eclipse.org/bugs/show_bug.cgi?id=17667
+		 * why we do not use the replacement string.
+		 * String word= fReplacementString;
+		 *
+		 * Besides that bug we also use the display string
+		 * for performance reasons, as computing the
+		 * replacement string can be expensive.
 		 */
-		return isPrefix(prefix, getDisplayString());
+		return isPrefix(pattern, TextProcessor.deprocess(getDisplayString()));
+	}
+
+	/**
+	 * Case insensitive matching of the <code>pattern</code> within the given
+	 * <code>string</code>.
+	 *
+	 * @param pattern
+	 *            the pattern
+	 * @param string
+	 *            the string to look for the pattern
+	 * @return <code>true</code> if the given pattern matches the string as a
+	 *         prefix, as a CamelCase match, or as a substring pattern and
+	 *         <code>false</code> if <code>pattern</code> is longer than
+	 *         <code>string</code> or if the pattern doesn't match the string
+	 *         based on any of these rules
+	 * @since 3.2
+	 */
+	protected boolean isPrefix(String pattern, String string) {
+		if (pattern == null || string == null
+				|| pattern.length() > string.length())
+			return false;
+		fPatternMatchRule = getPatternMatchRule(pattern, string);
+		return fPatternMatchRule != -1;
 	}
 
 	/**
 	 * Gets the proposal's relevance.
-	 * 
 	 * @return Returns a int
 	 */
+	@Override
 	public int getRelevance() {
+		if (fPatternMatchRule == SearchPattern.R_SUBSTRING_MATCH) {
+			return fRelevance - 500;
+		}
+// TODO impl subword
+//		if (fPatternMatchRule == SearchPattern.R_SUBWORD_MATCH) {
+//			return fRelevance - 1000;
+//		}
 		return fRelevance;
 	}
 
@@ -698,22 +739,64 @@ public abstract class AbstractScriptCompletionProposal implements
 		return ""; //$NON-NLS-1$
 	}
 
+//	/**
+//	 * Case insensitive comparison of <code>prefix</code> with the start of
+//	 * <code>string</code>. Returns <code>false</code> if <code>prefix</code> is
+//	 * longer than <code>string</code>
+//	 * 
+//	 * 
+//	 */
+//	protected boolean isPrefix(String prefix, String string) {
+//		if (prefix == null || string == null
+//				|| prefix.length() > string.length())
+//			return false;
+//		String start = string.substring(0, prefix.length());
+//		return start.equalsIgnoreCase(prefix)
+//				|| isCamelCaseMatching()
+//				&& CharOperation.camelCaseMatch(prefix.toCharArray(),
+//						string.toCharArray());
+//	}
+
 	/**
-	 * Case insensitive comparison of <code>prefix</code> with the start of
-	 * <code>string</code>. Returns <code>false</code> if <code>prefix</code> is
-	 * longer than <code>string</code>
-	 * 
-	 * 
+	 * Matches the given <code>pattern</code> in <code>string</code> and returns
+	 * the match rule.
+	 *
+	 * @param pattern
+	 *            the pattern to match
+	 * @param string
+	 *            the string to look for the pattern
+	 * @return the match rule used to match the given <code>pattern</code> in
+	 *         <code>string</code>, or -1 if the <code>pattern</code> doesn't
+	 *         match the <code>string</code> based on any rule
+	 * @since 3.12
 	 */
-	protected boolean isPrefix(String prefix, String string) {
-		if (prefix == null || string == null
-				|| prefix.length() > string.length())
-			return false;
-		String start = string.substring(0, prefix.length());
-		return start.equalsIgnoreCase(prefix)
-				|| isCamelCaseMatching()
-				&& CharOperation.camelCaseMatch(prefix.toCharArray(),
-						string.toCharArray());
+	protected int getPatternMatchRule(String pattern, String string) {
+		String start;
+		try {
+			start = string.substring(0, pattern.length());
+		} catch (StringIndexOutOfBoundsException e) {
+			String message = "Error retrieving proposal text.\nDisplay string:\n" //$NON-NLS-1$
+					+ string + "\nPattern:\n" + pattern; //$NON-NLS-1$
+			DLTKUIPlugin.log(new Status(IStatus.ERROR,
+					DLTKUIPlugin.getPluginId(),
+					IStatus.OK, message, e));
+			return -1;
+		}
+		if (start.equalsIgnoreCase(pattern)) {
+			return SearchPattern.R_PREFIX_MATCH;
+		} else if (isCamelCaseMatching() && CharOperation
+				.camelCaseMatch(pattern.toCharArray(), string.toCharArray())) {
+			return SearchPattern.R_CAMELCASE_MATCH;
+		} else if (isSubstringMatching() && CharOperation
+				.substringMatch(pattern.toCharArray(), string.toCharArray())) {
+			return SearchPattern.R_SUBSTRING_MATCH;
+// TODO subword matching
+//		} else if (isSubwordMatching() && CharOperation
+//				.subWordMatch(pattern.toCharArray(), string.toCharArray())) {
+//			return SearchPattern.R_SUBWORD_MATCH;
+		} else {
+			return -1;
+		}
 	}
 
 	/**
@@ -724,17 +807,18 @@ public abstract class AbstractScriptCompletionProposal implements
 	 * <ul>
 	 * <li>getCamelCompound("NuPo", "NullPointerException") ->
 	 * "NuPointerException"</li>
-	 * <li>getCamelCompound("NuPoE", "NullPointerException") -> "NuPoException"</li>
+	 * <li>getCamelCompound("NuPoE", "NullPointerException") ->
+	 * "NuPoException"</li>
 	 * <li>getCamelCompound("hasCod", "hashCode") -> "hasCode"</li>
 	 * </ul>
-	 * 
+	 *
 	 * @param prefix
 	 *            the prefix to match against
 	 * @param string
 	 *            the string to match
 	 * @return a compound of prefix and any postfix taken from
 	 *         <code>string</code>
-	 * 
+	 * @since 3.2
 	 */
 	protected final String getCamelCaseCompound(String prefix, String string) {
 		if (prefix.length() > string.length())
@@ -763,6 +847,18 @@ public abstract class AbstractScriptCompletionProposal implements
 	 */
 	protected boolean isCamelCaseMatching() {
 		String value = DLTKCore.getOption(DLTKCore.CODEASSIST_CAMEL_CASE_MATCH);
+		return DLTKCore.ENABLED.equals(value);
+	}
+
+	protected boolean isSubstringMatching() {
+		String value = DLTKCore
+				.getOption(DLTKCore.CODEASSIST_SUBSTRING_MATCH);
+		return DLTKCore.ENABLED.equals(value);
+	}
+
+	// TODO implement subword matching option
+	private boolean isSubwordMatching() {
+		String value = DLTKCore.getOption(DLTKCore.CODEASSIST_SUBWORD_MATCH);
 		return DLTKCore.ENABLED.equals(value);
 	}
 

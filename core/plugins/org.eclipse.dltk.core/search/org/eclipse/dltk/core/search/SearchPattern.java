@@ -193,6 +193,49 @@ public abstract class SearchPattern extends InternalSearchPattern {
 	public static final int R_CAMELCASE_MATCH = 0x0080;
 	private static final int MODE_MASK = R_EXACT_MATCH | R_PREFIX_MATCH
 			| R_PATTERN_MATCH | R_REGEXP_MATCH;
+
+	/**
+	 * Match rule: The search pattern contains a substring expression in a case-insensitive way.
+	 * <p>
+	 * Examples:
+	 * <ul>
+	 * 	<li>'bar' string pattern will match
+	 * 		'bar1', 'Bar' and 'removeBar' types,</li>
+	 * </ul>
+	 *
+	 * This rule is not intended to be combined with any other match rule. In case
+	 * of other match rule flags are combined with this one, then match rule validation
+	 * will return a modified rule in order to perform a better appropriate search request
+	 * (see {@link #validateMatchRule(String, int)} for more details).
+	 *
+	 * <p>
+	 * This is implemented only for code assist and not available for normal search.
+	 *
+	 * @since 3.12
+	 */
+	public static final int R_SUBSTRING_MATCH = 0x0200;
+	
+	/**
+	 * Match rule: The search pattern contains a subword expression in a case-insensitive way.
+	 * <p>
+	 * Examples:
+	 * <ul>
+	 * 	<li>'addlist' string pattern will match
+	 * 		'addListener' and 'addChangeListener'</li>
+	 * </ul>
+	 *
+	 * This rule is not intended to be combined with any other match rule. In case
+	 * of other match rule flags are combined with this one, then match rule validation
+	 * will return a modified rule in order to perform a better appropriate search request
+	 * (see {@link #validateMatchRule(String, int)} for more details).
+	 *
+	 * <p>
+	 * This is implemented only for code assist and not available for normal search.
+	 *
+	 * @since 3.21
+	 */
+	public static final int R_SUBWORD_MATCH = 0x0400;
+
 	private int matchRule;
 
 	private IDLTKLanguageToolkit toolkit;

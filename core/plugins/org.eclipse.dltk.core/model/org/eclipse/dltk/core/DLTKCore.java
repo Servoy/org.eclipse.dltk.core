@@ -246,6 +246,25 @@ public class DLTKCore extends Plugin {
 	 */
 	public static final String CODEASSIST_CAMEL_CASE_MATCH = PLUGIN_ID
 			+ ".codeComplete.camelCaseMatch"; //$NON-NLS-1$
+
+	/**
+	 * Possible configurable option ID.
+	 * 
+	 * @see #getDefaultOptions()
+	 * 
+	 */
+	public static final String CODEASSIST_SUBSTRING_MATCH = PLUGIN_ID
+			+ ".codeComplete.substringMatch"; //$NON-NLS-1$
+
+	/**
+	 * Possible configurable option ID.
+	 * 
+	 * @see #getDefaultOptions()
+	 * 
+	 */
+	public static final String CODEASSIST_SUBWORD_MATCH = PLUGIN_ID
+			+ ".codeComplete.subwordMatch"; //$NON-NLS-1$
+
 	/**
 	 * Possible configurable option ID.public static final boolean DEBUG_PARSER
 	 * = false;
