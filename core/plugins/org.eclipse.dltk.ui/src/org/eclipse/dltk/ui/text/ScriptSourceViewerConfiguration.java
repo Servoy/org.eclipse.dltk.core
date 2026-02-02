@@ -38,6 +38,7 @@ import org.eclipse.dltk.ui.actions.IScriptEditorActionDefinitionIds;
 import org.eclipse.dltk.ui.formatter.ScriptFormatterManager;
 import org.eclipse.dltk.ui.formatter.ScriptFormattingStrategy;
 import org.eclipse.dltk.ui.text.completion.ContentAssistPreference;
+import org.eclipse.dltk.ui.text.completion.RelevanceSorter;
 import org.eclipse.dltk.ui.text.spelling.SpellCheckDelegate;
 import org.eclipse.dltk.ui.text.util.AutoEditUtils;
 import org.eclipse.dltk.ui.text.util.TabStyle;
@@ -502,6 +503,8 @@ public abstract class ScriptSourceViewerConfiguration extends
 					.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
 			assistant
 					.setInformationControlCreator(getInformationControlCreator(sourceViewer));
+
+			assistant.setSorter(new RelevanceSorter());
 
 			alterContentAssistant(assistant);
 

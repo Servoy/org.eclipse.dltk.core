@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.jface.text.contentassist.ICompletionProposalSorter;
 
 /**
  * Abstract base class for sorters contributed to the
@@ -30,7 +31,7 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
  * </p>
  */
 public abstract class AbstractProposalSorter implements
-		Comparator<ICompletionProposal> {
+		Comparator<ICompletionProposal>, ICompletionProposalSorter {
 
 	/**
 	 * Creates a new sorter. Note that subclasses must provide a zero-argument
