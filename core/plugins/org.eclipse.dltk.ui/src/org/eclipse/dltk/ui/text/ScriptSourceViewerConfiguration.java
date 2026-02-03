@@ -506,6 +506,8 @@ public abstract class ScriptSourceViewerConfiguration extends
 
 			assistant.setSorter(new RelevanceSorter());
 
+			assistant.enableColoredLabels(true);
+
 			alterContentAssistant(assistant);
 
 			getContentAssistPreference().configure(assistant, fPreferenceStore);

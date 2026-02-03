@@ -191,6 +191,31 @@ public abstract class SearchPattern extends InternalSearchPattern {
 	 * 
 	 */
 	public static final int R_CAMELCASE_MATCH = 0x0080;
+
+	/**
+	 * Match rule: The search pattern contains a Camel Case expression with a
+	 * strict expected number of parts. <br>
+	 * Examples:
+	 * <ul>
+	 * <li>'HM' type string pattern will match 'HashMap' and 'HtmlMapper' types,
+	 * but not 'HashMapEntry'</li>
+	 * <li>'HMap' type string pattern will still match previous 'HashMap' and
+	 * 'HtmlMapper' types, but not 'HighMagnitude'</li>
+	 * </ul>
+	 *
+	 * This rule is not intended to be combined with any other match rule. In
+	 * case of other match rule flags are combined with this one, then match
+	 * rule validation will return a modified rule in order to perform a better
+	 * appropriate search request (see {@link #validateMatchRule(String, int)}
+	 * for more details).
+	 *
+	 * @see CharOperation#camelCaseMatch(char[], char[], boolean) for a detailed
+	 *      explanation of Camel Case matching.
+	 *
+	 * @since 3.4
+	 */
+	public static final int R_CAMELCASE_SAME_PART_COUNT_MATCH = 0x0100;
+
 	private static final int MODE_MASK = R_EXACT_MATCH | R_PREFIX_MATCH
 			| R_PATTERN_MATCH | R_REGEXP_MATCH;
 
@@ -235,6 +260,8 @@ public abstract class SearchPattern extends InternalSearchPattern {
 	 * @since 3.21
 	 */
 	public static final int R_SUBWORD_MATCH = 0x0400;
+
+	private final static int[] EMPTY_REGIONS = new int[0];
 
 	private int matchRule;
 
@@ -1566,6 +1593,462 @@ public abstract class SearchPattern extends InternalSearchPattern {
 			}
 		}
 		return matchRule;
+	}
+
+	/**
+	 * Answers all the regions in a given name matching a given pattern using a
+	 * specified match rule.
+	 * <p>
+	 * Each of these regions is made of its starting index and its length in the
+	 * given name. They are all concatenated in a single array of
+	 * <code>int</code> which therefore always has an even length.
+	 * </p>
+	 * <p>
+	 * All returned regions are disjointed from each other. That means that the
+	 * end of a region is always different than the start of the following
+	 * one.<br>
+	 * For example, if two regions are returned:<br>
+	 * <code>{ start1, length1, start2, length2 }</code><br>
+	 * then <code>start1+length1</code> will always be smaller than
+	 * <code>start2</code>.
+	 * </p>
+	 * <p>
+	 * The possible comparison rules between the name and the pattern are:
+	 * <ul>
+	 * <li>{@link #R_EXACT_MATCH exact matching}</li>
+	 * <li>{@link #R_PREFIX_MATCH prefix matching}</li>
+	 * <li>{@link #R_PATTERN_MATCH pattern matching}</li>
+	 * <li>{@link #R_CAMELCASE_MATCH camel case matching}</li>
+	 * <li>{@link #R_CAMELCASE_SAME_PART_COUNT_MATCH camel case matching with
+	 * same parts count}</li>
+	 * </ul>
+	 * Each of these rules may be combined with the {@link #R_CASE_SENSITIVE
+	 * case sensitive flag} if the match comparison should respect the case.
+	 * <p>
+	 * Examples:
+	 * <ol>
+	 * <li>pattern = "NPE" name = NullPointerException / NoPermissionException
+	 * matchRule = {@link #R_CAMELCASE_MATCH} result: { 0, 1, 4, 1, 11, 1 } / {
+	 * 0, 1, 2, 1, 12, 1 }</li>
+	 * <li>pattern = "NuPoEx" name = NullPointerException matchRule =
+	 * {@link #R_CAMELCASE_MATCH} result: { 0, 2, 4, 2, 11, 2 }</li>
+	 * <li>pattern = "IPL3" name = "IPerspectiveListener3" matchRule =
+	 * {@link #R_CAMELCASE_MATCH} result: { 0, 2, 12, 1, 20, 1 }</li>
+	 * <li>pattern = "HashME" name = "HashMapEntry" matchRule =
+	 * {@link #R_CAMELCASE_MATCH} result: { 0, 5, 7, 1 }</li>
+	 * <li>pattern = "N???Po*Ex?eption" name = NullPointerException matchRule =
+	 * {@link #R_PATTERN_MATCH} | {@link #R_CASE_SENSITIVE} result: { 0, 1, 4,
+	 * 2, 11, 2, 14, 6 }</li>
+	 * <li>pattern = "Ha*M*ent*" name = "HashMapEntry" matchRule =
+	 * {@link #R_PATTERN_MATCH} result: { 0, 2, 4, 1, 7, 3 }</li>
+	 * </ol>
+	 *
+	 * @see #camelCaseMatch(String, String, boolean) for more details on the
+	 *      camel case behavior
+	 * @see CharOperation#match(char[], char[], boolean) for more details on the
+	 *      pattern match behavior
+	 *
+	 * @param pattern
+	 *            the given pattern. If <code>null</code>, then an empty region
+	 *            (<code>new int[0]</code>) will be returned showing that the
+	 *            name matches the pattern but no common character has been
+	 *            found.
+	 * @param name
+	 *            the given name
+	 * @param matchRule
+	 *            the rule to apply for the comparison.<br>
+	 *            The following values are accepted:
+	 *            <ul>
+	 *            <li>{@link #R_EXACT_MATCH}</li>
+	 *            <li>{@link #R_PREFIX_MATCH}</li>
+	 *            <li>{@link #R_PATTERN_MATCH}</li>
+	 *            <li>{@link #R_CAMELCASE_MATCH}</li>
+	 *            <li>{@link #R_CAMELCASE_SAME_PART_COUNT_MATCH}</li>
+	 *            </ul>
+	 *            <p>
+	 *            Each of these valid values may be also combined with the
+	 *            {@link #R_CASE_SENSITIVE} flag.
+	 *            </p>
+	 *            Some examples:
+	 *            <ul>
+	 *            <li>{@link #R_EXACT_MATCH} | {@link #R_CASE_SENSITIVE}: if an
+	 *            exact case sensitive match is expected,</li>
+	 *            <li>{@link #R_PREFIX_MATCH}: if a case insensitive prefix
+	 *            match is expected,</li>
+	 *            <li>{@link #R_CAMELCASE_MATCH}: if a case insensitive camel
+	 *            case match is expected,</li>
+	 *            <li>{@link #R_CAMELCASE_SAME_PART_COUNT_MATCH} |
+	 *            {@link #R_CASE_SENSITIVE}: if a case sensitive camel case with
+	 *            same parts count match is expected,</li>
+	 *            <li>etc.</li>
+	 *            </ul>
+	 * @return an array of <code>int</code> having two slots per returned
+	 *         regions (the first one is the region starting index and the
+	 *         second one is the region length or <code>null</code> if the given
+	 *         name does not match the given pattern).
+	 *         <p>
+	 *         The returned regions may be empty (<code>new int[0]</code>) if
+	 *         the pattern is <code>null</code> (whatever the match rule is).
+	 *         The returned regions will also be empty if the pattern is only
+	 *         made of <code>'?'</code> and/or <code>'*'</code> character(s)
+	 *         (e.g. <code>'*'</code>, <code>'?*'</code>, <code>'???'</code>,
+	 *         etc.) when using a pattern match rule.
+	 *         </p>
+	 *
+	 * @since 3.5
+	 */
+	public static final int[] getMatchingRegions(String pattern, String name,
+			int matchRule) {
+		if (name == null)
+			return null;
+		final int nameLength = name.length();
+		if (pattern == null) {
+			return new int[] { 0, nameLength };
+		}
+		final int patternLength = pattern.length();
+		boolean countMatch = false;
+		switch (matchRule) {
+		case SearchPattern.R_EXACT_MATCH:
+			if (patternLength == nameLength && pattern.equalsIgnoreCase(name)) {
+				return new int[] { 0, patternLength };
+			}
+			break;
+		case SearchPattern.R_EXACT_MATCH | SearchPattern.R_CASE_SENSITIVE:
+			if (patternLength == nameLength && pattern.equals(name)) {
+				return new int[] { 0, patternLength };
+			}
+			break;
+		case SearchPattern.R_PREFIX_MATCH:
+			if (patternLength <= nameLength && name.substring(0, patternLength)
+					.equalsIgnoreCase(pattern)) {
+				return new int[] { 0, patternLength };
+			}
+			break;
+		case SearchPattern.R_PREFIX_MATCH | SearchPattern.R_CASE_SENSITIVE:
+			if (name.startsWith(pattern)) {
+				return new int[] { 0, patternLength };
+			}
+			break;
+		case SearchPattern.R_CAMELCASE_SAME_PART_COUNT_MATCH:
+			countMatch = true;
+			//$FALL-THROUGH$
+		case SearchPattern.R_CAMELCASE_MATCH:
+			if (patternLength <= nameLength) {
+				int[] regions = getCamelCaseMatchingRegions(pattern, 0,
+						patternLength, name, 0, nameLength, countMatch);
+				if (regions != null)
+					return regions;
+				if (name.substring(0, patternLength)
+						.equalsIgnoreCase(pattern)) {
+					return new int[] { 0, patternLength };
+				}
+			}
+			break;
+		case SearchPattern.R_CAMELCASE_SAME_PART_COUNT_MATCH
+				| SearchPattern.R_CASE_SENSITIVE:
+			countMatch = true;
+			//$FALL-THROUGH$
+		case SearchPattern.R_CAMELCASE_MATCH | SearchPattern.R_CASE_SENSITIVE:
+			if (patternLength <= nameLength) {
+				return getCamelCaseMatchingRegions(pattern, 0, patternLength,
+						name, 0, nameLength, countMatch);
+			}
+			break;
+//		case SearchPattern.R_PATTERN_MATCH:
+//			return StringOperation.getPatternMatchingRegions(pattern, 0,
+//					patternLength, name, 0, nameLength, false);
+//		case SearchPattern.R_PATTERN_MATCH | SearchPattern.R_CASE_SENSITIVE:
+//			return StringOperation.getPatternMatchingRegions(pattern, 0,
+//					patternLength, name, 0, nameLength, true);
+		case SearchPattern.R_SUBSTRING_MATCH:
+			if (patternLength <= nameLength) {
+				int next = CharOperation.indexOf(pattern.toCharArray(),
+						name.toCharArray(), false);
+				return next >= 0 ? new int[] { next, patternLength } : null;
+			}
+			break;
+		case SearchPattern.R_SUBWORD_MATCH:
+			return CharOperation.getSubWordMatchingRegions(pattern, name);
+		}
+		return null;
+	}
+
+	/**
+	 * Answers all the regions in a given name matching a given camel case
+	 * pattern.
+	 * <p>
+	 * Each of these regions is made of its starting index and its length in the
+	 * given name. They are all concatenated in a single array of
+	 * <code>int</code> which therefore always has an even length.
+	 * <p>
+	 * Note that each region is disjointed from the following one.<br>
+	 * E.g. if the regions are
+	 * <code>{ start1, length1, start2, length2 }</code>, then
+	 * <code>start1+length1</code> will always be smaller than
+	 * <code>start2</code>. Examples:
+	 * <ol>
+	 * <li>pattern = "NPE"
+	 * 
+	 * <pre>{@code
+	 *  name = NullPointerException / NoPermissionException
+	 *  result:  { 0, 1, 4, 1, 11, 1 } / { 0, 1, 2, 1, 12, 1 } </li>
+	 *  }</pre>
+	 * 
+	 * <li>pattern = "NuPoEx"
+	 * 
+	 * <pre>{@code
+	 *  name = NullPointerException
+	 *  result:  { 0, 2, 4, 2, 11, 2 }</li>
+	 *  }</pre>
+	 * 
+	 * <li>pattern = "IPL3"
+	 * 
+	 * <pre>{@code
+	 *  name = "IPerspectiveListener3"
+	 *  result:  { 0, 2, 12, 1, 20, 1 }</li>
+	 *  }</pre>
+	 * 
+	 * <li>pattern = "HashME"
+	 * 
+	 * <pre>{@code
+	 *  name = "HashMapEntry"
+	 *  result:  { 0, 5, 7, 1 }</li>
+	 *  }</pre>
+	 * </ol>
+	 *
+	 * @see CharOperation#camelCaseMatch(char[], int, int, char[], int, int,
+	 *      boolean) for more details on the camel case behavior
+	 * @see CharOperation#match(char[], char[], boolean) for more details on the
+	 *      pattern match behavior
+	 *
+	 * @param pattern
+	 *            the given pattern
+	 * @param patternStart
+	 *            the start index of the pattern, inclusive
+	 * @param patternEnd
+	 *            the end index of the pattern, exclusive
+	 * @param name
+	 *            the given name
+	 * @param nameStart
+	 *            the start index of the name, inclusive
+	 * @param nameEnd
+	 *            the end index of the name, exclusive
+	 * @param samePartCount
+	 *            flag telling whether the pattern and the name should have the
+	 *            same count of parts or not.<br>
+	 *            &nbsp;&nbsp;For example:
+	 *            <ul>
+	 *            <li>'HM' type string pattern will match 'HashMap' and
+	 *            'HtmlMapper' types, but not 'HashMapEntry'</li>
+	 *            <li>'HMap' type string pattern will still match previous
+	 *            'HashMap' and 'HtmlMapper' types, but not 'HighMagnitude'</li>
+	 *            </ul>
+	 * @return an array of <code>int</code> having two slots per returned
+	 *         regions (first one is the starting index of the region and the
+	 *         second one the length of the region).<br>
+	 *         Note that it may be <code>null</code> if the given name does not
+	 *         match the pattern
+	 * @since 3.5
+	 */
+	//copied over from StringOperation
+	public static final int[] getCamelCaseMatchingRegions(String pattern,
+			int patternStart, int patternEnd, String name, int nameStart,
+			int nameEnd, boolean samePartCount) {
+
+		/*
+		 * !!!!!!!!!! WARNING !!!!!!!!!! The algorithm used in this method has
+		 * been fully inspired from CharOperation#camelCaseMatch(char[], int,
+		 * int, char[], int, int, boolean).
+		 *
+		 * So, if any change needs to be applied in the algorithm, do NOT forget
+		 * to backport it in the CharOperation method!
+		 */
+
+		if (name == null)
+			return null; // null name cannot match
+		if (pattern == null) {
+			// null pattern cannot match any region
+			// see bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=264816
+			return EMPTY_REGIONS;
+		}
+		if (patternEnd < 0)
+			patternEnd = pattern.length();
+		if (nameEnd < 0)
+			nameEnd = name.length();
+
+		if (patternEnd <= patternStart) {
+			return nameEnd <= nameStart
+					? new int[] { patternStart, patternEnd - patternStart }
+					: null;
+		}
+		if (nameEnd <= nameStart)
+			return null;
+		// check first pattern char
+		if (name.charAt(nameStart) != pattern.charAt(patternStart)) {
+			// first char must strictly match (upper/lower)
+			return null;
+		}
+
+		char patternChar, nameChar;
+		int iPattern = patternStart;
+		int iName = nameStart;
+
+		// init segments
+		int parts = 1;
+		for (int i = patternStart + 1; i < patternEnd; i++) {
+			final char ch = pattern.charAt(i);
+			if (ch < ScannerHelper.MAX_OBVIOUS) {
+				if ((ScannerHelper.OBVIOUS_IDENT_CHAR_NATURES[ch]
+						& (ScannerHelper.C_UPPER_LETTER
+								| ScannerHelper.C_DIGIT)) != 0) {
+					parts++;
+				}
+			} else if (Character.isJavaIdentifierPart(ch)
+					&& (Character.isUpperCase(ch) || Character.isDigit(ch))) {
+				parts++;
+			}
+		}
+		int[] segments = null;
+		int count = 0; // count
+
+		// Main loop is on pattern characters
+		int segmentStart = iName;
+		while (true) {
+			iPattern++;
+			iName++;
+
+			if (iPattern == patternEnd) { // we have exhausted pattern...
+				// it's a match if the name can have additional parts (i.e.
+				// uppercase characters) or is also exhausted
+				if (!samePartCount || iName == nameEnd) {
+					if (segments == null) {
+						segments = new int[2];
+					}
+					segments[count++] = segmentStart;
+					segments[count++] = iName - segmentStart;
+					if (count < segments.length) {
+						System.arraycopy(segments, 0, segments = new int[count],
+								0, count);
+					}
+					return segments;
+				}
+
+				// otherwise it's a match only if the name has no more uppercase
+				// characters
+				int segmentEnd = iName;
+				while (true) {
+					if (iName == nameEnd) {
+						// we have exhausted the name, so it's a match
+						if (segments == null) {
+							segments = new int[2];
+						}
+						segments[count++] = segmentStart;
+						segments[count++] = segmentEnd - segmentStart;
+						if (count < segments.length) {
+							System.arraycopy(segments, 0,
+									segments = new int[count], 0, count);
+						}
+						return segments;
+					}
+					nameChar = name.charAt(iName);
+					// test if the name character is uppercase
+					if (nameChar < ScannerHelper.MAX_OBVIOUS) {
+						if ((ScannerHelper.OBVIOUS_IDENT_CHAR_NATURES[nameChar]
+								& ScannerHelper.C_UPPER_LETTER) != 0) {
+							return null;
+						}
+					} else if (!Character.isJavaIdentifierPart(nameChar)
+							|| Character.isUpperCase(nameChar)) {
+						return null;
+					}
+					iName++;
+				}
+			}
+
+			if (iName == nameEnd) {
+				// We have exhausted the name (and not the pattern), so it's not
+				// a match
+				return null;
+			}
+
+			// For as long as we're exactly matching, bring it on (even if it's
+			// a lower case character)
+			if ((patternChar = pattern.charAt(iPattern)) == name
+					.charAt(iName)) {
+				continue;
+			}
+			int segmentEnd = iName;
+
+			// If characters are not equals, then it's not a match if
+			// patternChar is lowercase
+			if (patternChar < ScannerHelper.MAX_OBVIOUS) {
+				if ((ScannerHelper.OBVIOUS_IDENT_CHAR_NATURES[patternChar]
+						& (ScannerHelper.C_UPPER_LETTER
+								| ScannerHelper.C_DIGIT)) == 0) {
+					return null;
+				}
+			} else if (Character.isJavaIdentifierPart(patternChar)
+					&& !Character.isUpperCase(patternChar)
+					&& !Character.isDigit(patternChar)) {
+				return null;
+			}
+
+			// patternChar is uppercase, so let's find the next uppercase in
+			// name
+			while (true) {
+				if (iName == nameEnd) {
+					// We have exhausted name (and not pattern), so it's not a
+					// match
+					return null;
+				}
+
+				nameChar = name.charAt(iName);
+				if (nameChar < ScannerHelper.MAX_OBVIOUS) {
+					int charNature = ScannerHelper.OBVIOUS_IDENT_CHAR_NATURES[nameChar];
+					if ((charNature & (ScannerHelper.C_LOWER_LETTER
+							| ScannerHelper.C_SPECIAL)) != 0) {
+						// nameChar is lowercase
+						iName++;
+					} else if ((charNature & ScannerHelper.C_DIGIT) != 0) {
+						// nameChar is digit => break if the digit is current
+						// pattern character otherwise consume it
+						if (patternChar == nameChar)
+							break;
+						iName++;
+						// nameChar is uppercase...
+					} else if (patternChar != nameChar) {
+						// .. and it does not match patternChar, so it's not a
+						// match
+						return null;
+					} else {
+						// .. and it matched patternChar. Back to the big loop
+						break;
+					}
+				}
+				// Same tests for non-obvious characters
+				else if (Character.isJavaIdentifierPart(nameChar)
+						&& !Character.isUpperCase(nameChar)) {
+					iName++;
+				} else if (Character.isDigit(nameChar)) {
+					if (patternChar == nameChar)
+						break;
+					iName++;
+				} else if (patternChar != nameChar) {
+					return null;
+				} else {
+					break;
+				}
+			}
+			// At this point, either name has been exhausted, or it is at an
+			// uppercase letter.
+			// Since pattern is also at an uppercase letter
+			if (segments == null) {
+				segments = new int[parts * 2];
+			}
+			segments[count++] = segmentStart;
+			segments[count++] = segmentEnd - segmentStart;
+			segmentStart = iName;
+		}
 	}
 
 	/**

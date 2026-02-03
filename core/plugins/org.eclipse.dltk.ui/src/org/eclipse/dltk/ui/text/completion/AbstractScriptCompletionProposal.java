@@ -47,10 +47,13 @@ import org.eclipse.jface.text.ITextViewerExtension2;
 import org.eclipse.jface.text.ITextViewerExtension5;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.contentassist.BoldStylerProvider;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension2;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension3;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension5;
+import org.eclipse.jface.text.contentassist.ICompletionProposalExtension6;
+import org.eclipse.jface.text.contentassist.ICompletionProposalExtension7;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.link.ILinkedModeListener;
 import org.eclipse.jface.text.link.LinkedModeModel;
@@ -59,6 +62,8 @@ import org.eclipse.jface.text.link.LinkedModeUI.ExitFlags;
 import org.eclipse.jface.text.link.LinkedModeUI.IExitPolicy;
 import org.eclipse.jface.text.link.LinkedPosition;
 import org.eclipse.jface.text.link.LinkedPositionGroup;
+import org.eclipse.jface.viewers.StyledString;
+import org.eclipse.jface.viewers.StyledString.Styler;
 import org.eclipse.osgi.util.TextProcessor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
@@ -80,7 +85,8 @@ import org.osgi.framework.Bundle;
 public abstract class AbstractScriptCompletionProposal implements
 		IScriptCompletionProposal, ICompletionProposalExtension,
 		ICompletionProposalExtension2, ICompletionProposalExtension3,
-		ICompletionProposalExtension5 {
+		ICompletionProposalExtension5, ICompletionProposalExtension6,
+		ICompletionProposalExtension7 {
 
 	/**
 	 * A class to simplify tracking a reference position in a document.
@@ -182,7 +188,7 @@ public abstract class AbstractScriptCompletionProposal implements
 
 	}
 
-	private String fDisplayString;
+	private StyledString fDisplayString;
 	private String fReplacementString;
 	private int fReplacementOffset;
 	private int fReplacementLength;
@@ -457,7 +463,9 @@ public abstract class AbstractScriptCompletionProposal implements
 	 * @see ICompletionProposal#getDisplayString()
 	 */
 	public String getDisplayString() {
-		return fDisplayString;
+		if (fDisplayString != null)
+			return fDisplayString.getString();
+		return ""; //$NON-NLS-1$
 	}
 
 	/*
@@ -1048,7 +1056,7 @@ public abstract class AbstractScriptCompletionProposal implements
 	}
 
 	protected void setDisplayString(String string) {
-		fDisplayString = string;
+		fDisplayString = new StyledString(string);
 	}
 
 	@Override
@@ -1073,5 +1081,98 @@ public abstract class AbstractScriptCompletionProposal implements
 			}
 		}
 		return null;
+	}
+
+	@Override
+	public StyledString getStyledDisplayString() {
+		return fDisplayString;
+	}
+
+	public void setStyledDisplayString(StyledString text) {
+		fDisplayString = text;
+	}
+
+	@Override
+	public StyledString getStyledDisplayString(IDocument document, int offset,
+			BoldStylerProvider boldStylerProvider) {
+		StyledString styledDisplayString = new StyledString();
+		styledDisplayString.append(getStyledDisplayString());
+
+		String pattern = getPatternToEmphasizeMatch(document, offset);
+		if (pattern != null && pattern.length() > 0) {
+			String displayString = styledDisplayString.getString();
+			int patternMatchRule = getPatternMatchRule(pattern, displayString);
+			int[] matchingRegions = SearchPattern.getMatchingRegions(pattern,
+					displayString, patternMatchRule);
+			markMatchingRegions(styledDisplayString, 0, matchingRegions,
+					boldStylerProvider.getBoldStyler());
+		}
+		return styledDisplayString;
+	}
+
+	/**
+	 * Sets the given <code>styler</code> to use for
+	 * <code>matchingRegions</code> (obtained from
+	 * {@link org.eclipse.jdt.core.search.SearchPattern#getMatchingRegions}) in
+	 * the <code>styledString</code> starting from the given <code>index</code>.
+	 * This is copied over from org.eclipse.jdt.internal.corext.util.Strings.
+	 *
+	 * @param styledString
+	 *            the styled string to mark
+	 * @param index
+	 *            the index from which to start marking
+	 * @param matchingRegions
+	 *            the regions to mark
+	 * @param styler
+	 *            the styler to use for marking
+	 */
+	private void markMatchingRegions(StyledString styledString, int index,
+			int[] matchingRegions, Styler styler) {
+		if (matchingRegions != null) {
+			int offset = -1;
+			int length = 0;
+			for (int i = 0; i + 1 < matchingRegions.length; i = i + 2) {
+				if (offset == -1)
+					offset = index + matchingRegions[i];
+
+				// Concatenate adjacent regions
+				if (i + 2 < matchingRegions.length && matchingRegions[i]
+						+ matchingRegions[i + 1] == matchingRegions[i + 2]) {
+					length = length + matchingRegions[i + 1];
+				} else {
+					styledString.setStyle(offset,
+							length + matchingRegions[i + 1], styler);
+					offset = -1;
+					length = 0;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Computes the token at the given <code>offset</code> in
+	 * <code>document</code> to emphasize the ranges matching this token in
+	 * proposal's display string.
+	 *
+	 * @param document
+	 *            the document where content assist is invoked
+	 * @param offset
+	 *            the offset in the document at current caret location
+	 * @return the token at the given <code>offset</code> in
+	 *         <code>document</code> to be used for emphasizing matching ranges
+	 *         in proposal's display string
+	 * @since 3.12
+	 */
+	protected String getPatternToEmphasizeMatch(IDocument document,
+			int offset) {
+		int start = getPrefixCompletionStart(document, offset);
+		int patternLength = offset - start;
+		String pattern = null;
+		try {
+			pattern = document.get(start, patternLength);
+		} catch (BadLocationException e) {
+			// return null
+		}
+		return pattern;
 	}
 }
