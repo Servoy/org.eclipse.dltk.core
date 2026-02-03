@@ -10,6 +10,7 @@
 package org.eclipse.dltk.compiler;
 
 import org.eclipse.dltk.compiler.util.ScannerHelper;
+import org.eclipse.dltk.compiler.util.SubwordMatcher;
 
 /**
  * This class is a collection of helper methods to manipulate char arrays.
@@ -36,6 +37,8 @@ public final class CharOperation {
 	public static final String[] NO_STRINGS = new String[0];
 
 	private static final char MAX_OBVIOUS = 128;
+
+	private static final int[] EMPTY_REGIONS = new int[0];
 
 	/**
 	 * Answers a new array with appending the suffix character at the end of the
@@ -4327,5 +4330,79 @@ public final class CharOperation {
 		return false;
 	}
 
+	/**
+	 * Answers true if the characters of the pattern are contained in the name
+	 * as a subword, in a case-insensitive way.
+	 *
+	 * @param pattern
+	 *            the given pattern
+	 * @param name
+	 *            the given name
+	 * @return true if the pattern matches the given name, false otherwise
+	 * @since 3.21
+	 */
+	public static final boolean subWordMatch(char[] pattern, char[] name) {
+		if (name == null)
+			return false; // null name cannot match
+		if (pattern == null)
+			return true; // null pattern is equivalent to '*'
 
+		int[] matchingRegions = getSubWordMatchingRegions(new String(pattern),
+				new String(name));
+		return matchingRegions != null;
+	}
+
+	/**
+	 * Answers all the regions in a given name matching a subword pattern.
+	 * <p>
+	 * Each of these regions is made of its starting index and its length in the
+	 * given name. They are all concatenated in a single array of
+	 * <code>int</code> which therefore always has an even length.
+	 * <p>
+	 * Note that each region is disjointed from the following one.<br>
+	 * E.g. if the regions are
+	 * <code>{ start1, length1, start2, length2 }</code>, then
+	 * <code>start1+length1</code> will always be smaller than
+	 * <code>start2</code>.
+	 * <p>
+	 * Examples:
+	 * <ol>
+	 * <li>
+	 * 
+	 * <pre>
+	 *    pattern = "linkedmap"
+	 *    name = LinkedHashMap
+	 *    result:  { 0, 6, 10, 3 }
+	 * </pre>
+	 * 
+	 * </li>
+	 * </ol>
+	 *
+	 * @see CharOperation#subWordMatch(char[], char[]) for more details on the
+	 *      subword behavior
+	 *
+	 * @param pattern
+	 *            the given pattern
+	 * @param name
+	 *            the given name
+	 * @return an array of <code>int</code> having two slots per returned
+	 *         regions (first one is the starting index of the region and the
+	 *         second one the length of the region).<br>
+	 *         Note that it may be <code>null</code> if the given name does not
+	 *         match the pattern
+	 * @since 3.21
+	 */
+	public static final int[] getSubWordMatchingRegions(String pattern,
+			String name) {
+
+		if (name == null)
+			return null; // null name cannot match
+		if (pattern == null) {
+			// null pattern cannot match any region
+			// see bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=264816
+			return EMPTY_REGIONS;
+		}
+
+		return new SubwordMatcher(name).getMatchingRegions(pattern);
+	}
 }

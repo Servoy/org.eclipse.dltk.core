@@ -704,10 +704,9 @@ public abstract class AbstractScriptCompletionProposal implements
 		if (fPatternMatchRule == SearchPattern.R_SUBSTRING_MATCH) {
 			return fRelevance - 500;
 		}
-// TODO impl subword
-//		if (fPatternMatchRule == SearchPattern.R_SUBWORD_MATCH) {
-//			return fRelevance - 1000;
-//		}
+		if (fPatternMatchRule == SearchPattern.R_SUBWORD_MATCH) {
+			return fRelevance - 1000;
+		}
 		return fRelevance;
 	}
 
@@ -738,24 +737,6 @@ public abstract class AbstractScriptCompletionProposal implements
 		}
 		return ""; //$NON-NLS-1$
 	}
-
-//	/**
-//	 * Case insensitive comparison of <code>prefix</code> with the start of
-//	 * <code>string</code>. Returns <code>false</code> if <code>prefix</code> is
-//	 * longer than <code>string</code>
-//	 * 
-//	 * 
-//	 */
-//	protected boolean isPrefix(String prefix, String string) {
-//		if (prefix == null || string == null
-//				|| prefix.length() > string.length())
-//			return false;
-//		String start = string.substring(0, prefix.length());
-//		return start.equalsIgnoreCase(prefix)
-//				|| isCamelCaseMatching()
-//				&& CharOperation.camelCaseMatch(prefix.toCharArray(),
-//						string.toCharArray());
-//	}
 
 	/**
 	 * Matches the given <code>pattern</code> in <code>string</code> and returns
@@ -790,10 +771,9 @@ public abstract class AbstractScriptCompletionProposal implements
 		} else if (isSubstringMatching() && CharOperation
 				.substringMatch(pattern.toCharArray(), string.toCharArray())) {
 			return SearchPattern.R_SUBSTRING_MATCH;
-// TODO subword matching
-//		} else if (isSubwordMatching() && CharOperation
-//				.subWordMatch(pattern.toCharArray(), string.toCharArray())) {
-//			return SearchPattern.R_SUBWORD_MATCH;
+		} else if (isSubwordMatching() && CharOperation
+				.subWordMatch(pattern.toCharArray(), string.toCharArray())) {
+			return SearchPattern.R_SUBWORD_MATCH;
 		} else {
 			return -1;
 		}
@@ -856,7 +836,6 @@ public abstract class AbstractScriptCompletionProposal implements
 		return DLTKCore.ENABLED.equals(value);
 	}
 
-	// TODO implement subword matching option
 	private boolean isSubwordMatching() {
 		String value = DLTKCore.getOption(DLTKCore.CODEASSIST_SUBWORD_MATCH);
 		return DLTKCore.ENABLED.equals(value);
