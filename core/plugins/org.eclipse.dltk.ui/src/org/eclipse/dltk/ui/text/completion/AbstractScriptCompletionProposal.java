@@ -1085,6 +1085,9 @@ public abstract class AbstractScriptCompletionProposal implements
 
 	@Override
 	public StyledString getStyledDisplayString() {
+		if (fDisplayString == null) {
+			fDisplayString = new StyledString(getDisplayString());
+		}
 		return fDisplayString;
 	}
 
