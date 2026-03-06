@@ -115,7 +115,9 @@ public abstract class AbstractAnnotationHover extends
 					String msg = getMessageFromAnnotation(a);
 					if (msg != null && msg.trim().length() > 0) {
 						if (message != null) {
-							message = message + "\n-" + msg;
+							message = message
+									+ "\n---------------------\n-"
+									+ msg;
 							multi = true;
 						} else {
 							message = msg;

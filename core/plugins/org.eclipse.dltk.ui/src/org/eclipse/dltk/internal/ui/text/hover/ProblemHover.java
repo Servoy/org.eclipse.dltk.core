@@ -11,7 +11,6 @@ package org.eclipse.dltk.internal.ui.text.hover;
 
 import org.eclipse.dltk.compiler.problem.IProblem;
 import org.eclipse.dltk.core.CorrectionEngine;
-import org.eclipse.dltk.utils.TextUtils;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.ui.texteditor.MarkerAnnotation;
 
@@ -29,8 +28,15 @@ public class ProblemHover extends AbstractAnnotationHover {
 
 	@Override
 	protected String postUpdateMessage(String message) {
-		return super.postUpdateMessage(TextUtils.replace(message, '\n',
-				"<br/>\n").replace("<", "&lt;")); //$NON-NLS-1$
+		if (message.contains("Multiple markers")) {
+			message = message.replace("---------------------",
+					"<b>────────────────────────────</b>");
+		}
+		if (message.toLowerCase().contains("<br")) {
+			return message.replace("\n", "<br/>\n");
+		}
+		return super.postUpdateMessage(
+				message.replace("<", "&lt;").replace("\n", "<br/>\n"));
 	}
 
 	@Override
