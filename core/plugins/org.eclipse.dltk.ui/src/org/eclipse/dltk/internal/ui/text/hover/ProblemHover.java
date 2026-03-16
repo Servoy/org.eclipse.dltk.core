@@ -28,10 +28,6 @@ public class ProblemHover extends AbstractAnnotationHover {
 
 	@Override
 	protected String postUpdateMessage(String message) {
-		if (message.contains("Multiple markers")) {
-			message = message.replace("---------------------",
-					"<b>────────────────────────────</b>");
-		}
 		if (message.toLowerCase().contains("<br")) {
 			return message.replace("\n", "<br/>\n");
 		}

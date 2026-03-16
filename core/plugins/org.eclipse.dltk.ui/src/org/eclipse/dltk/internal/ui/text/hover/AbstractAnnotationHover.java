@@ -116,7 +116,7 @@ public abstract class AbstractAnnotationHover extends
 					if (msg != null && msg.trim().length() > 0) {
 						if (message != null) {
 							message = message
-									+ "\n---------------------\n-"
+									+ "\n\n-"
 									+ msg;
 							multi = true;
 						} else {
